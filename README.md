@@ -4,7 +4,18 @@
 >
 > 附带这份场景**反推出来的 77 条分级提示词**（v1→v4 全文，含修订痕迹），以及从过程中沉淀出的 [`prompt-selfcheck`](skills/prompt-selfcheck/) skill。
 
-<p align="center"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/konbini-loop.gif" alt="rainy night konbini loop" width="440"></p>
+<p align="center">
+  <a href="https://78tyih.github.io/rainy-night-konbini/showcase.html">
+    <img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/poster-tour.jpg" alt="68 秒巡览片 · 点击播放" width="760">
+  </a><br>
+  <sub><b>▶ 68 秒巡览片</b> · 1280×650 · 24fps —— 点封面打开<a href="https://78tyih.github.io/rainy-night-konbini/showcase.html"><b>展示页</b></a>播放，
+  或直接下载 <a href="docs/media/konbini-tour.mp4"><code>konbini-tour.mp4</code></a>（14.5 MiB）</sub><br>
+  <sub>录自浏览器里<b>实时运行</b>的场景本体，四章：定场 / 推近 / 交互证明 / 回拉。不是合成画面、不是截图。</sub>
+</p>
+
+> **为什么这里没有内嵌播放器？** GitHub 的 markdown 会剥掉 `<video>` 标签（相对路径和绝对 URL 一样，
+> 实测渲染成空段落）。README 里能「动」的上限是动图，视频只能以可点击的封面 + 链接呈现。
+> 想内嵌播放请走<a href="https://78tyih.github.io/rainy-night-konbini/showcase.html">展示页</a>。
 
 | | |
 |---|---|
@@ -16,6 +27,34 @@
 | **迭代过程报告** | [docs/iteration.html](docs/iteration.html)（[在线](https://78tyih.github.io/rainy-night-konbini/iteration.html)）—— 两条被评审抓出的真错误、19 轮评审时间线、消融实测证据 |
 | **展示页** | [`docs/showcase.html`](docs/showcase.html)（ZH/EN × 日/夜） |
 | **授权** | **仓库无 LICENSE 文件。方法论可参考，代码复制需授权。** |
+
+---
+
+## 先看一眼
+
+**动态预览**（从巡览片抽的 4 秒循环，README 内唯一会动的元素）：
+
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/konbini-loop.gif" alt="rainy night konbini loop" width="520"></p>
+
+**六张静帧**（实时渲染实截，非截图拼贴；机位即源码 `06_effects.js` 里 `ctrl` 的 az / el / dist / target）：
+
+<table>
+<tr>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/hero.jpg" alt="hero pose"><br><sub><b>① 标准机位</b><br>az 0.86 · el 0.22 · dist 27</sub></td>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/storefront.jpg" alt="storefront"><br><sub><b>② 立面近景</b><br>az 0.86 · el 0.20 · dist 13</sub></td>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/interior.jpg" alt="interior"><br><sub><b>③ 店内透过玻璃</b><br>az 0.86 · el 0.16 · dist 17</sub></td>
+</tr>
+<tr>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/ground.jpg" alt="ground rain"><br><sub><b>④ 地面雨景</b><br>az 1.2 · el 0.05 · dist 9</sub></td>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/corner.jpg" alt="street corner"><br><sub><b>⑤ 街角回望</b><br>az 2.2 · el 0.25 · dist 30</sub></td>
+<td width="33%" valign="top"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/shots/moonshadow.jpg" alt="moonlit wide"><br><sub><b>⑥ 弱光氛围</b><br>az −0.5 · el 0.35 · dist 38</sub></td>
+</tr>
+</table>
+
+> 采集条件：Chrome headless + Metal，CDP 驱动诊断桥固定机位、冻结时间轴后 `Page.captureScreenshot`。
+> 原始采集 1600×913，发行 JPEG 1280×730。同机位两次实截 PSNR ≈ 31 dB
+> （差异来自 `Math.random` 播种的门相位/蒸汽/涟漪，源码注释已声明不保证跨运行复现）。
+> 完整采集说明与 14 张过程图（含消融 ON/OFF 对）见[**迭代过程报告**](docs/iteration.html)。
 
 ---
 
@@ -173,6 +212,6 @@ rainy-night-konbini/
 ├── skills/prompt-selfcheck/        # 沉淀出的 skill（四道闸门）
 ├── docs/showcase.html              # 展示页（ZH/EN × 日/夜）
 ├── docs/iteration.html             # 迭代过程报告（两条真错误 / 19 轮评审 / 消融实测）
-├── docs/media/                     # 巡览视频 + 6 张实截静帧 + 消融对 + GIF
+├── docs/media/                     # 巡览视频 + 视频封面 + 6 张实截静帧 + 消融对 + GIF
 └── showcase/                       # project.json 事实包 + evidence.md 证据分级
 ```

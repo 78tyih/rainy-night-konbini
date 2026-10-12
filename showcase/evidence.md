@@ -89,3 +89,6 @@ v1 → v4 的演进中，有两条错误是**被外部评审抓出来后才修�
 | 媒体制作方案经外部双通道评审 | brief-v2 → GPT 通道（gpt-6-astra）+ Kimi 通道（实际 K2.8 Preview），归档于 `deliverables/konbini-showcase-2026-10-12/` | 双方结论收敛后执行；Kimi「散点矩阵只编码类型不编码密度」「近零差异对不得冒充对比图」等纠正已落入 iteration.html |
 | 成品经外部双通道复审（2026-10-13） | brief-v3 → GPT 通道（gpt-6-astra，45.1s）+ Kimi 通道（kimi-code/k3，156.9s），归档于 `deliverables/konbini-showcase-2026-10-12/answers/v3/`（含 manifest.json） | 两通道独立同指三处口径错误：① 评审轮数「20 轮（r5–r20）」自相矛盾且算术错（r5–r20 仅 16 轮，全量 r2–r20＝19 轮）② 静帧「1600×1000」与实测 1600×913 不符，宽高比 1.6 与实测 1.75 都不符 ③ 视频标注为采集尺寸、非发行规格。均已按建议改为「发行尺寸（采集尺寸另注）」 |
 | 视频内文字（卡片 / 字幕） | 全部为 DOM 覆盖层烧录，无编造计数类字幕 | 结构性事实字幕 + 采集说明披露 |
+| **GitHub README 无法内嵌 `<video>`**：只能用动图或可点击封面 | `POST https://api.github.com/markdown`（mode=gfm，context=本仓库）对 `<video src=相对路径>`、`<video src=绝对URL>` 两个样例实测 | 两者均被剥成 `<p dir="auto"></p>` 空段落；同一轮实测 `<img>`、`<a><img></a>` 正常保留。故 README 采用「烧入播放角标的可点击封面 `docs/media/poster-tour.jpg` + 链接到展示页」；`https://github.com/user-attachments/…` 内联播放需向 GitHub 上传附件，PAT（scope `repo/gist/workflow`）调 `/upload/policies/assets` 返回 401，本机做不到 |
+| 视频封面 `docs/media/poster-tour.jpg` | 从 `konbini-tour.mp4` t=5s 抽帧（1280×650，即发行分辨率），PIL 烧入半透明播放角标与「68s · 24fps」角标 | 114 KB；不含任何编造信息，画面即视频第 5 秒 |
+| README 全文模拟渲染（推前自检） | `POST /markdown` 送整份 README | 8 个 `<img>`、5 个 `<table>`、8 个 `<sub>` 全部保留；**0 个空段落**（无元素被剥）；图片均经 camo 代理 |
