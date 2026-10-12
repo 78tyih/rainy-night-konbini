@@ -183,9 +183,20 @@
   },
   "links": {
     "showcase": "https://78tyih.github.io/rainy-night-konbini/showcase.html",
+    "iteration": "https://78tyih.github.io/rainy-night-konbini/iteration.html",
     "artifact": "https://78tyih.github.io/rainy-night-konbini/dist/rainy-night-konbini.html",
+    "video": "https://78tyih.github.io/rainy-night-konbini/media/konbini-tour.mp4",
+    "gif": "https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/konbini-loop.gif",
     "repo": "https://github.com/78tyih/rainy-night-konbini",
     "artifact_canonical": "https://github.com/78tyih/rainy-night-konbini/blob/main/dist/rainy-night-konbini.html"
+  },
+  "media": {
+    "stills": "docs/media/shots/（6 张 1600×1000 实截，机位参数见 iteration.html）",
+    "history": "docs/media/history/（评审档案 renders/ 精选：r3/r4 过程快照 + r13/r17 消融对 + r19 接口）",
+    "video": "docs/media/konbini-tour.mp4（68s / 1600×812 / 24fps；frozen-stepped + live 交互，采集说明见 iteration.html）",
+    "gif": "docs/media/konbini-loop.gif（README 内嵌，440px 宽循环）",
+    "psnr_same_pose_db": 31,
+    "psnr_note": "同机位两次实截差异来自 Math.random 播种（门相位/蒸汽/涟漪），源码注释声明不保证跨运行复现"
   },
   "extracted_from": {
     "session_date": "2026-10-12",

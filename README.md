@@ -4,12 +4,16 @@
 >
 > 附带这份场景**反推出来的 77 条分级提示词**（v1→v4 全文，含修订痕迹），以及从过程中沉淀出的 [`prompt-selfcheck`](skills/prompt-selfcheck/) skill。
 
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/78tyih/rainy-night-konbini@main/docs/media/konbini-loop.gif" alt="rainy night konbini loop" width="440"></p>
+
 | | |
 |---|---|
 | **类型** | 3D 场景 / 生成式提示词资产 |
 | **状态** | 已完成，经 20 轮外部评审（r5–r20） |
 | **入口** | [`dist/rainy-night-konbini.html`](dist/rainy-night-konbini.html) —— 下载后双击即开 |
 | **在线** | <https://78tyih.github.io/rainy-night-konbini/showcase.html> |
+| **巡览视频** | [68 秒 · 实拍浏览器实时渲染](docs/media/konbini-tour.mp4)（[展示页内嵌播放](https://78tyih.github.io/rainy-night-konbini/showcase.html)） |
+| **迭代过程报告** | [docs/iteration.html](docs/iteration.html)（[在线](https://78tyih.github.io/rainy-night-konbini/iteration.html)）—— 两条被评审抓出的真错误、19 轮评审时间线、消融实测证据 |
 | **展示页** | [`docs/showcase.html`](docs/showcase.html)（ZH/EN × 日/夜） |
 | **授权** | **仓库无 LICENSE 文件。方法论可参考，代码复制需授权。** |
 
@@ -168,5 +172,7 @@ rainy-night-konbini/
 ├── prompt/                         # v1–v4 提示词 + 四版发布文案
 ├── skills/prompt-selfcheck/        # 沉淀出的 skill（四道闸门）
 ├── docs/showcase.html              # 展示页（ZH/EN × 日/夜）
+├── docs/iteration.html             # 迭代过程报告（两条真错误 / 19 轮评审 / 消融实测）
+├── docs/media/                     # 巡览视频 + 6 张实截静帧 + 消融对 + GIF
 └── showcase/                       # project.json 事实包 + evidence.md 证据分级
 ```

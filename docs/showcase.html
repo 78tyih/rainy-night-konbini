@@ -138,6 +138,22 @@ tbody tr:hover{background:var(--card-2)}
 .demo .foot{padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--fg-3);
   display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
+/* ── media: video + stills ── */
+.video{margin-top:22px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow)}
+.video video{display:block;width:100%;background:#05070f}
+.video .bar{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--line);
+  background:var(--card-2);font-size:12px;color:var(--fg-3);font-weight:600}
+.video .foot{padding:12px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg-2);line-height:1.7}
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.shot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.shot img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:#0b0d10}
+.shot .meta{padding:13px 15px}
+.shot .meta .t{font-size:13.5px;font-weight:700;margin-bottom:3px}
+.shot .meta .p{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:6px;letter-spacing:-.01em}
+@media (max-width:820px){ .shots{grid-template-columns:1fr 1fr} }
+@media (max-width:520px){ .shots{grid-template-columns:1fr} }
+
 /* ── FAQ accordion ── */
 .faq{margin-top:22px;display:flex;flex-direction:column;gap:10px}
 details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden}
@@ -211,6 +227,8 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
   <div class="cta">
     <a class="btn p" href="dist/rainy-night-konbini.html" target="_blank">
       <span class="zh">打开场景本体 ↗</span><span class="en">Open the scene ↗</span></a>
+    <a class="btn" href="iteration.html">
+      <span class="zh">迭代过程报告</span><span class="en">Iteration report</span></a>
     <a class="btn" href="https://github.com/78tyih/rainy-night-konbini">
       <span class="zh">GitHub 仓库</span><span class="en">GitHub repo</span></a>
     <a class="btn" href="#q4">
@@ -250,6 +268,79 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
       <span class="en">drag = rotate · scroll = zoom · right-drag = pan</span>
       <span class="zh">无 UI · 无按钮 · 无 loading 条</span>
       <span class="en">no UI · no buttons · no loading bar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ MEDIA ══════════ -->
+<section>
+  <div class="kicker">MEDIA · 视频与静帧</div>
+  <h2><span class="zh">看看它动起来</span><span class="en">Watch it move</span></h2>
+  <p class="sub">
+    <span class="zh">68 秒巡览片，录自浏览器中交互式场景本体；六张静帧为实时渲染实截，机位参数写在每张图下面。
+    完整采集说明与迭代过程见<a href="iteration.html"><b>迭代过程报告</b></a>。</span>
+    <span class="en">A 68-second tour recorded from the interactive artifact itself; six stills are real-render
+    captures with their camera poses printed below each frame. Full capture disclosure and the iteration
+    story live in the <a href="iteration.html"><b>iteration report</b></a>.</span>
+  </p>
+
+  <div class="video">
+    <div class="bar">
+      <span>konbini-tour.mp4</span>
+      <span style="margin-left:auto" class="zh">68 秒 · 1600×812 · 24fps</span>
+      <span style="margin-left:auto" class="en">68s · 1600×812 · 24fps</span>
+    </div>
+    <video controls preload="metadata" poster="media/shots/hero.jpg">
+      <source src="media/konbini-tour.mp4" type="video/mp4">
+    </video>
+    <div class="foot">
+      <span class="zh">采集说明：定场 / 推近 / 回拉为冻结时间轴后按 1/24s 步进采集；交互章为实时运行，旋转与缩放由真实浏览器鼠标事件驱动。同机位两次实截 PSNR≈31 dB（Math.random 播种差异，源码注释已声明不保证跨运行复现）。</span>
+      <span class="en">Capture note: establishing / push-in / pull-back step T0 by 1/24s with the timeline frozen; the interaction chapter runs live, with rotation and zoom driven by real browser mouse events. Two same-pose captures measure PSNR≈31 dB (Math.random-seeded variance; the source comment states run-to-run reproducibility is not guaranteed).</span>
+    </div>
+  </div>
+
+  <div class="shots">
+    <div class="shot">
+      <img src="media/shots/hero.jpg" alt="hero pose" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">① 标准机位 · 微缩感来源</span><span class="en">① Hero pose · the miniature read</span></div>
+        <div class="p">az 0.86 · el 0.22 · dist 27</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/interior.jpg" alt="interior through glass" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">② 店内暖光 · r3 几何修正的终点</span><span class="en">② Interior warmth · endpoint of the r3 fix</span></div>
+        <div class="p">az 0.86 · el 0.16 · dist 17</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/storefront.jpg" alt="storefront close-up" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">③ 立面近景 · 程序化贴图</span><span class="en">③ Facade close-up · procedural textures</span></div>
+        <div class="p">az 0.86 · el 0.20 · dist 13</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/ground.jpg" alt="ground rain detail" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">④ 地面雨景 · 涟漪与水洼</span><span class="en">④ Wet ground · ripples and puddles</span></div>
+        <div class="p">az 1.20 · el 0.05 · dist 9</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/corner.jpg" alt="street corner" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">⑤ 街角回转 · 街外世界</span><span class="en">⑤ Corner swing · the world outside</span></div>
+        <div class="p">az 2.20 · el 0.25 · dist 30</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/moonshadow.jpg" alt="moonlit wide" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">⑥ 弱光影调 · 唯一的投影光源</span><span class="en">⑥ Weak-light key · the only shadow caster</span></div>
+        <div class="p">az -0.50 · el 0.35 · dist 38</div>
+      </div>
     </div>
   </div>
 </section>

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迭代过程报告 · 雨夜便利店街角 | Iteration Report · Rainy-Night Konbini Corner</title>
+<style>
+:root{
+  --bg:#f5f6f8; --bg-2:#eceef2; --card:#ffffff; --card-2:#f8f9fb;
+  --fg:#18191c; --fg-2:#4a4d55; --fg-3:#84878f;
+  --line:#dfe2e8; --line-2:#c9cdd6;
+  --accent:#4F8CFF; --accent-soft:#e8f0ff;
+  --up:#e0503c; --up-soft:#fdeeea;
+  --down:#3ea173; --down-soft:#e9f6ef;
+  --warn:#f2a83c; --warn-soft:#fdf3e3;
+  --shadow:0 1px 2px rgba(16,18,24,.05), 0 8px 24px rgba(16,18,24,.06);
+  --radius:14px; --radius-s:9px;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0f1114; --bg-2:#15181d; --card:#181b21; --card-2:#1e222a;
+  --fg:#f2f3f5; --fg-2:#b6bac2; --fg-3:#7d828c;
+  --line:#272b33; --line-2:#363b45;
+  --accent:#6fa0ff; --accent-soft:#1b2740;
+  --up:#ff7a63; --up-soft:#2e1a17;
+  --down:#4fbf8c; --down-soft:#13261f;
+  --warn:#f5b65a; --warn-soft:#2b2113;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.65;
+  -webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,.mono{font-family:var(--mono);font-size:.88em}
+[data-lang="zh"] .en{display:none}
+[data-lang="en"] .zh{display:none}
+
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hd{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.logo .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);flex:none;
+  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.hd .sp{flex:1}
+.tgl{display:flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;background:var(--card)}
+.tgl button{border:0;background:transparent;color:var(--fg-3);font:inherit;font-size:12px;font-weight:600;
+  padding:5px 11px;cursor:pointer;transition:.15s}
+.tgl button.on{background:var(--accent);color:#fff}
+.tgl button:not(.on):hover{color:var(--fg)}
+.icobtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line-2);background:var(--card);
+  color:var(--fg-2);cursor:pointer;display:grid;place-items:center;font-size:14px;transition:.15s}
+.icobtn:hover{color:var(--fg);border-color:var(--accent)}
+
+main{max-width:1120px;margin:0 auto;padding:0 24px 80px}
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:0}
+.kicker{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.15;letter-spacing:-.028em;font-weight:800}
+h2{font-size:clamp(21px,2.6vw,27px);line-height:1.25;letter-spacing:-.02em;font-weight:750;margin-bottom:8px}
+h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--fg-2);font-size:clamp(15px,1.7vw,17px);max-width:820px}
+.note{color:var(--fg-3);font-size:13px}
+.small{font-size:12px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);color:var(--fg-2)}
+.chip.b{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:650;
+  padding:10px 17px;border-radius:10px;border:1px solid var(--line-2);background:var(--card);
+  color:var(--fg);cursor:pointer;transition:.16s;text-decoration:none}
+.btn:hover{border-color:var(--accent);text-decoration:none;transform:translateY(-1px)}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.p:hover{filter:brightness(1.07)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px 16px}
+.stat .n{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:11.5px;color:var(--fg-3);margin-top:2px;font-weight:600}
+
+.grid{display:grid;gap:14px;margin-top:22px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card.tint{background:var(--card-2)}
+
+/* evidence legend */
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.grade{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+  padding:2px 8px;border-radius:5px;font-family:var(--mono)}
+.grade.o{background:var(--down-soft);color:var(--down)}
+.grade.i{background:var(--warn-soft);color:var(--warn)}
+.grade.u{background:var(--up-soft);color:var(--up)}
+.legend .item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-2);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+
+/* video */
+.video{margin-top:22px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow)}
+.video video{display:block;width:100%;background:#05070f}
+.video .bar{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--line);
+  background:var(--card-2);font-size:12px;color:var(--fg-3);font-weight:600}
+.video .foot{padding:12px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--fg-2);line-height:1.7}
+
+/* stills grid (product class: no version watermark) */
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.shot{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.shot img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:#0b0d10}
+.shot .meta{padding:13px 15px}
+.shot .meta .t{font-size:13.5px;font-weight:700;margin-bottom:3px}
+.shot .meta .p{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:6px;letter-spacing:-.01em}
+
+/* error confrontation cards */
+.errhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:26px}
+.errhead .no{font-family:var(--mono);font-size:12px;font-weight:800;color:#fff;background:var(--up);
+  padding:3px 10px;border-radius:6px}
+.diagram{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;box-shadow:var(--shadow)}
+.diagram svg{display:block;width:100%;height:auto}
+.quote{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.quote .q{border-radius:var(--radius-s);padding:15px 17px;font-size:13px;line-height:1.75;border:1px solid var(--line)}
+.quote .q.bad{background:var(--up-soft);border-color:color-mix(in srgb,var(--up) 30%,transparent)}
+.quote .q.good{background:var(--down-soft);border-color:color-mix(in srgb,var(--down) 30%,transparent)}
+.quote .q .src{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:8px}
+.attrib{margin-top:14px}
+.attrib table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.attrib td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.attrib td:first-child{font-weight:700;width:130px;color:var(--fg-2);white-space:nowrap}
+
+/* timeline */
+.tlwrap{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:24px 22px 18px;box-shadow:var(--shadow)}
+.tlwrap svg{display:block;width:100%;height:auto}
+.turn{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.turn .t{background:var(--card-2);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px 15px}
+.turn .t .r{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.04em}
+.turn .t .h{font-size:13px;font-weight:700;margin:4px 0 5px}
+.turn .t .d{font-size:11.5px;color:var(--fg-3);line-height:1.6}
+
+/* clause bars */
+.bars{display:flex;align-items:flex-end;gap:26px;margin-top:26px;padding:26px 24px 18px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.bar .v{font-family:var(--mono);font-size:13px;font-weight:800}
+.bar .b{border-radius:6px 6px 0 0;background:var(--accent);width:100%;min-height:3px}
+.bar.dim .b{background:var(--line-2)}
+.bar .k{font-family:var(--mono);font-size:11px;color:var(--fg-3);font-weight:700}
+.bar .s{font-size:10.5px;color:var(--fg-3)}
+
+/* clause diff */
+.cdiff{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cdiff .c{border-radius:var(--radius-s);padding:16px 18px;border:1px solid var(--line);font-size:13px;line-height:1.8}
+.cdiff .c.old{background:var(--up-soft);border-color:color-mix(in srgb,var(--up) 30%,transparent)}
+.cdiff .c.new{background:var(--down-soft);border-color:color-mix(in srgb,var(--down) 30%,transparent)}
+.cdiff .c .tag{font-family:var(--mono);font-size:10.5px;font-weight:800;margin-bottom:8px;display:block}
+.cdiff .c.old .tag{color:var(--up)} .cdiff .c.new .tag{color:var(--down)}
+.cdiff .c .src{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-top:10px}
+
+/* ablation pairs */
+.pair{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.pair .ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pair .ph .n{font-size:14px;font-weight:750}
+.pair .ph .stat{font-family:var(--mono);font-size:11px;color:var(--fg-2);background:var(--card-2);
+  border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+.pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair .fig{position:relative;border-radius:var(--radius-s);overflow:hidden;border:1px solid var(--line)}
+.pair .fig img{display:block;width:100%;background:#0b0d10}
+.pair .fig .lab{position:absolute;left:8px;top:8px;font-family:var(--mono);font-size:10px;font-weight:800;
+  color:#fff;background:rgba(10,13,20,.72);padding:3px 8px;border-radius:5px;letter-spacing:.03em}
+.pair .fig .region{position:absolute;border:2px solid var(--warn);border-radius:3px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.45), 0 0 14px color-mix(in srgb,var(--warn) 55%,transparent)}
+.pair .fig .cap{font-size:11px;color:var(--fg-3);padding:7px 10px;background:var(--card-2)}
+
+/* process snapshots */
+.proc{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.proc .fig{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.proc .fig img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#0b0d10}
+.proc .fig .stamp{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--up) 88%,transparent);
+  color:#fff;font-size:10.5px;font-weight:700;padding:5px 10px;letter-spacing:.02em}
+.proc .fig .rl{position:absolute;left:8px;top:8px;font-family:var(--mono);font-size:10px;font-weight:800;
+  color:#fff;background:rgba(10,13,20,.72);padding:3px 8px;border-radius:5px}
+.proc .fig .cap{padding:10px 12px;font-size:11.5px;color:var(--fg-2);line-height:1.6}
+
+table.data{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px}
+table.data th,table.data td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);
+  background:var(--card-2)}
+table.data td:first-child{font-weight:650}
+table.data tbody tr:hover{background:var(--card-2)}
+
+.bound{margin-top:16px;padding:14px 16px;border-radius:var(--radius-s);background:var(--warn-soft);
+  border:1px solid color-mix(in srgb,var(--warn) 32%,transparent);font-size:13px;color:var(--fg-2)}
+.bound b{color:var(--fg)}
+
+footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)}
+.ft{max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--fg-3)}
+
+@media (max-width:820px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3,.quote,.cdiff,.pair .imgs{grid-template-columns:1fr}
+  .shots,.proc,.turn{grid-template-columns:1fr 1fr}
+  .hd{padding:10px 16px} main{padding:0 16px 60px}
+  section{padding:36px 0}
+}
+@media (max-width:520px){ .shots,.proc,.turn{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-lang="zh">
+
+<header>
+  <div class="hd">
+    <div class="logo"><span class="dot">雨</span><span>Iteration&nbsp;Report</span></div>
+    <span class="sp"></span>
+    <div class="tgl" id="langTgl">
+      <button data-lang="zh" class="on">中</button>
+      <button data-lang="en">EN</button>
+    </div>
+    <button class="icobtn" id="themeBtn" title="切换日/夜">☾</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero" style="padding-top:64px">
+  <div class="kicker">ITERATION REPORT · 迭代过程报告</div>
+  <h1>
+    <span class="zh">它是怎么被<br>一步步改出来的</span>
+    <span class="en">How it was changed,<br>step by step</span>
+  </h1>
+  <p class="sub" style="margin-top:18px">
+    <span class="zh">这座 945 KB 的雨夜便利店街角不是一次画成的。它过了 19 轮外部评审（r2–r20，双通道），
+    其中两条<b>看上去自洽的错误</b>被评审当场抓出。这份报告讲的就是这个过程——不是结论，是抓错和改正的方法。</span>
+    <span class="en">This 945 KB rainy-night corner wasn't drawn in one pass. It went through 19 rounds of
+    external review (r2–r20, two channels), and two <b>errors that looked self-consistent</b> were caught
+    in the act. This report is about that process — not the conclusions, but the method of catching and fixing.</span>
+  </p>
+  <div class="chips">
+    <span class="chip b">r2–r20 · 19 轮评审</span>
+    <span class="chip">2 条被抓出的真错误</span>
+    <span class="chip">77 条分级提示词</span>
+    <span class="chip">6 张实截静帧</span>
+    <span class="chip">68 秒巡览视频</span>
+  </div>
+  <div class="legend">
+    <span class="item"><span class="grade o">Observed</span><span class="zh">本机实测：源码检索 / 脚本判决 / 文件大小 / 截图</span><span class="en">measured locally: source search / script verdict / file size / screenshot</span></span>
+    <span class="item"><span class="grade i">Inferred</span><span class="zh">文档自述，未独立复核</span><span class="en">self-reported, not independently verified</span></span>
+    <span class="item"><span class="grade u">Unknown</span><span class="zh">明确缺口，不假装知道</span><span class="en">a stated gap — not pretending to know</span></span>
+  </div>
+  <div class="cta">
+    <a class="btn p" href="#s1"><span class="zh">先看一眼成品</span><span class="en">See the artifact first</span></a>
+    <a class="btn" href="#s2"><span class="zh">两条真错误（主线）</span><span class="en">The two real errors (main line)</span></a>
+    <a class="btn" href="showcase.html"><span class="zh">四问展示页</span><span class="en">Four-question showcase</span></a>
+    <a class="btn" href="https://github.com/78tyih/rainy-night-konbini"><span class="zh">GitHub 仓库</span><span class="en">GitHub repo</span></a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">944,900</div><div class="l"><span class="zh">产物字节（实测）</span><span class="en">artifact bytes (measured)</span></div></div>
+    <div class="stat"><div class="n">19</div><div class="l"><span class="zh">外部评审轮次 r2–r20</span><span class="en">review rounds r2–r20</span></div></div>
+    <div class="stat"><div class="n">1,035</div><div class="l"><span class="zh">提示词 v4 行数（实测）</span><span class="en">prompt v4 lines (measured)</span></div></div>
+    <div class="stat"><div class="n">2</div><div class="l"><span class="zh">被评审抓出的硬错</span><span class="en">hard errors caught by review</span></div></div>
+  </div>
+</section>
+
+<!-- ══════════ §1 先看一眼 ══════════ -->
+<section id="s1">
+  <div class="kicker">01 · THE ARTIFACT · 成品</div>
+  <h2><span class="zh">先看一眼：它现在长什么样</span><span class="en">First, a look: what it is now</span></h2>
+  <p class="sub">
+    <span class="zh">下面全部是<b>浏览器里实时渲染的实截</b>，不是合成画面。视频录自交互式场景本体；
+    静帧用诊断桥固定机位后拍摄，机位参数写在每张图下面。</span>
+    <span class="en">Everything below is a <b>real capture of the live render</b>, not a composite.
+    The video is recorded from the interactive artifact; stills are shot at fixed camera poses
+    via the diagnostic bridge, with the pose printed under each frame.</span>
+  </p>
+
+  <div class="video">
+    <div class="bar">
+      <span>konbini-tour.mp4</span>
+      <span style="margin-left:auto" class="zh">68 秒 · 1600×812 · 24fps</span>
+      <span class="en">68s · 1600×812 · 24fps</span>
+    </div>
+    <video controls preload="metadata" poster="media/shots/hero.jpg">
+      <source src="media/konbini-tour.mp4" type="video/mp4">
+      <span class="zh">你的浏览器不支持内嵌视频，可直接下载 media/konbini-tour.mp4。</span>
+      <span class="en">Your browser cannot play inline video; download media/konbini-tour.mp4 directly.</span>
+    </video>
+    <div class="foot">
+      <span class="zh"><b>采集说明（不掩饰）：</b>四章中定场/推近/回拉为冻结时间轴后按 1/24s 步进 T0 采集
+      （雨、自动门、蒸汽、信号灯平滑；风场、涟漪、檐滴处于冻结态）；交互章为<b>实时运行</b>，
+      旋转与缩放由真实浏览器鼠标事件驱动，屏上圆环为光标指示。同机位两次实截 PSNR≈31 dB——
+      差异来自 Math.random 播种的门相位/蒸汽/涟漪（源码注释已声明不保证跨运行复现）。<span class="grade o">Observed</span></span>
+      <span class="en"><b>Capture disclosure:</b> the establishing / push-in / pull-back chapters step T0 by 1/24s
+      with the timeline frozen (rain, doors, steam, signals smooth; wind, ripples, eave drips held);
+      the interaction chapter runs <b>live</b> — rotation and zoom are driven by real browser mouse events,
+      with an on-screen ring as the cursor indicator. Two same-pose captures measure PSNR≈31 dB —
+      the gap comes from Math.random-seeded door phase / steam / ripples (the source comment states
+      run-to-run reproducibility is not guaranteed). <span class="grade o">Observed</span></span>
+    </div>
+  </div>
+
+  <div class="shots">
+    <div class="shot">
+      <img src="media/shots/hero.jpg" alt="hero pose" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">① 标准机位 · 微缩感来源</span><span class="en">① Hero pose · where miniaturisation comes from</span></div>
+        <div class="note"><span class="zh">fov 32° + 约 20° 俯角，是这个项目「像缩微模型」的主要来源。</span><span class="en">fov 32° plus ~20° elevation — the main source of the miniature read.</span></div>
+        <div class="p">az 0.86 · el 0.22 · dist 27 · tgt(-0.2, 1.35, -0.5)</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/interior.jpg" alt="interior through glass" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">② 店内暖光 · r3 几何修正的终点</span><span class="en">② Interior warmth · endpoint of the r3 geometry fix</span></div>
+        <div class="note"><span class="zh">删掉大面积 additive 板、货架端头垂直窗前之后，玻璃后重新可读。</span><span class="en">After deleting the large additive panels and turning shelf end-caps perpendicular to the window, the interior reads again.</span></div>
+        <div class="p">az 0.86 · el 0.16 · dist 17 · tgt(-0.2, 1.10, -0.6)</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/storefront.jpg" alt="storefront close-up" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">③ 立面近景 · 程序化贴图</span><span class="en">③ Facade close-up · procedural textures</span></div>
+        <div class="note"><span class="zh">招牌、雨棚、腰壁全部程序化生成；硬边来自 N=4 色阶，不是后期描边。</span><span class="en">Signage, canopy and sill wall are all procedural; the hard edges come from the N=4 ramp, not post-process outlines.</span></div>
+        <div class="p">az 0.86 · el 0.20 · dist 13 · tgt(-0.2, 1.50, -0.2)</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/ground.jpg" alt="ground rain detail" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">④ 地面雨景 · 涟漪与水洼</span><span class="en">④ Wet ground · ripples and puddles</span></div>
+        <div class="note"><span class="zh">涟漪按 r = r₀ + c·t^(2/3) 扩张；左下角那只是猫。</span><span class="en">Ripples expand as r = r₀ + c·t^(2/3); the glowing-eyed figure bottom-left is a cat.</span></div>
+        <div class="p">az 1.20 · el 0.05 · dist 9 · tgt(0.5, 0.15, 0.5)</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/corner.jpg" alt="street corner" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">⑤ 街角回转 · 街外世界</span><span class="en">⑤ Corner swing · the world outside</span></div>
+        <div class="note"><span class="zh">电线杆、围墙、车、人行道——微缩感需要「外面也有东西」才成立。</span><span class="en">Poles, walls, a car, the sidewalk — a miniature needs a world outside to read as small.</span></div>
+        <div class="p">az 2.20 · el 0.25 · dist 30 · tgt(0, 1.20, 0)</div>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="media/shots/moonshadow.jpg" alt="moonlit wide" loading="lazy">
+      <div class="meta">
+        <div class="t"><span class="zh">⑥ 弱光影调 · 唯一的投影光源</span><span class="en">⑥ Weak-light key · the only shadow caster</span></div>
+        <div class="note"><span class="zh">全工程 castShadow 仅月光一处（源码全文检索）；暖色稀缺是写进提示词的不变量。</span><span class="en">Exactly one castShadow in the whole build (full source search); warm-colour scarcity is a prompt invariant.</span></div>
+        <div class="p">az -0.50 · el 0.35 · dist 38 · tgt(2, 0.80, 2)</div>
+      </div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">
+    <span class="zh">静帧为 1600×1000 实时渲染实截（本页显示为压缩副本）。机位即源码 <code>06_effects.js</code> 中
+    <code>ctrl</code> 对象的 az / el / dist / target 四个参数。<span class="grade o">Observed</span></span>
+    <span class="en">Stills are 1600×1000 real-render captures (compressed copies shown here). The pose is the
+    <code>ctrl</code> object's az / el / dist / target in <code>06_effects.js</code>. <span class="grade o">Observed</span></span>
+  </p>
+</section>
+
+<!-- ══════════ §2 两条真错误 ══════════ -->
+<section id="s2">
+  <div class="kicker">02 · THE TWO ERRORS · 主线</div>
+  <h2><span class="zh">两条看上去自洽的真错误</span><span class="en">Two errors that looked self-consistent</span></h2>
+  <p class="sub">
+    <span class="zh">这是整份报告的主线。两条错误当时都能自圆其说，所以人手 review 抓不到——
+    只有把每条声明拿去和<b>源码</b>、和<b>算术</b>对质，才会露。</span>
+    <span class="en">The main line of this report. Both errors were internally consistent when written, which is why
+    human review missed them — only confronting each claim with the <b>source code</b> and with <b>arithmetic</b>
+    exposed them.</span>
+  </p>
+
+  <!-- ── error 1 ── -->
+  <div class="errhead">
+    <span class="no">错误 ①</span>
+    <h3 style="margin:0"><span class="zh">「玻璃带占立面总高 65%」——这个数是我们编的</span><span class="en">"The glass band is 65% of the facade" — a fabricated number</span></h3>
+  </div>
+  <div class="diagram">
+    <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" font-family="var(--sans)">
+      <!-- left: facade elevation, 1m = 46px, ground y=262 -->
+      <g>
+        <text x="150" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fg-2)">立面标高示意（米）</text>
+        <!-- ground -->
+        <line x1="60" y1="262" x2="380" y2="262" stroke="var(--fg)" stroke-width="1.5"/>
+        <!-- facade body 0..4.05m -> y 262..76 -->
+        <rect x="150" y="76" width="150" height="186" fill="var(--card-2)" stroke="var(--line-2)" stroke-width="1"/>
+        <!-- upper box 2.62..4.05 -->
+        <rect x="150" y="76" width="150" height="66" fill="color-mix(in srgb,var(--accent) 12%,transparent)" stroke="var(--line-2)" stroke-width="0.75"/>
+        <text x="225" y="112" text-anchor="middle" font-size="10" fill="var(--fg-3)">上部盒体 2.62–4.05</text>
+        <!-- glass band 0.55..2.30 -->
+        <rect x="150" y="139" width="150" height="80" fill="color-mix(in srgb,var(--warn) 22%,transparent)" stroke="var(--warn)" stroke-width="1"/>
+        <text x="225" y="183" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--fg-2)">玻璃带 0.55–2.30</text>
+        <!-- sill wall 0..0.65 -->
+        <rect x="150" y="232" width="150" height="30" fill="color-mix(in srgb,var(--up) 18%,transparent)" stroke="var(--up)" stroke-width="1.2"/>
+        <text x="225" y="251" text-anchor="middle" font-size="10" font-weight="700" fill="var(--up)">窗下墙体 ≤ 0.65</text>
+        <!-- dimension line for 0.65 -->
+        <line x1="140" y1="232" x2="140" y2="262" stroke="var(--up)" stroke-width="1.2"/>
+        <line x1="135" y1="232" x2="145" y2="232" stroke="var(--up)" stroke-width="1.2"/>
+        <line x1="135" y1="262" x2="145" y2="262" stroke="var(--up)" stroke-width="1.2"/>
+        <text x="132" y="250" text-anchor="end" font-size="10" font-weight="800" fill="var(--up)">0.65 m</text>
+        <text x="150" y="284" text-anchor="middle" font-size="9.5" fill="var(--fg-3)">源码注释原文：「窗下墙体不要超过 0.65 m」</text>
+      </g>
+      <!-- transcription arrow -->
+      <g>
+        <line x1="330" y1="247" x2="398" y2="247" stroke="var(--up)" stroke-width="2"/>
+        <polygon points="398,242 410,247 398,252" fill="var(--up)"/>
+        <text x="364" y="236" text-anchor="middle" font-size="10" font-weight="800" fill="var(--up)">抄写</text>
+        <text x="364" y="274" text-anchor="middle" font-size="10" fill="var(--fg-2)">长度 → 比例</text>
+      </g>
+      <!-- right: the claim + arithmetic -->
+      <g>
+        <rect x="420" y="60" width="320" height="86" rx="8" fill="var(--up-soft)" stroke="var(--up)" stroke-width="1.2"/>
+        <text x="436" y="84" font-size="11" font-weight="800" fill="var(--up)">v3 断言（已判错）</text>
+        <text x="436" y="108" font-size="13.5" font-weight="800" fill="var(--fg)">「玻璃带占立面总高的 65%」</text>
+        <text x="436" y="130" font-size="10.5" fill="var(--fg-2)">prompt/konbini-3d-prompt-v3.md:203</text>
+        <rect x="420" y="158" width="320" height="112" rx="8" fill="var(--card-2)" stroke="var(--line-2)"/>
+        <text x="436" y="180" font-size="11" font-weight="800" fill="var(--fg-2)">算术对质（用 v3 自己给的标高）</text>
+        <text x="436" y="202" font-size="11" fill="var(--fg-2)">反推结果：70.6% / 80.4% —— 都推不出 65%</text>
+        <text x="436" y="222" font-size="11" fill="var(--fg-2)">要凑出 65%，分母得是 2.846 m</text>
+        <text x="436" y="242" font-size="11" font-weight="700" fill="var(--up)">立面里没有 2.846 m 这一段</text>
+        <text x="436" y="262" font-size="10" fill="var(--fg-3)">prompt/konbini-3d-prompt-v4.md 卷首 ①</text>
+      </g>
+    </svg>
+  </div>
+  <div class="quote">
+    <div class="q bad">
+      <b><span class="zh">v3 原文（错误）</span><span class="en">v3 (wrong)</span></b><br>
+      「★ <b>玻璃带占立面总高的 65%</b>。这一条不能妥协：……」
+      <div class="src">prompt/konbini-3d-prompt-v3.md:203 <span class="grade o">Observed</span></div>
+    </div>
+    <div class="q good">
+      <b><span class="zh">v4 修正（现状）</span><span class="en">v4 (fixed)</span></b><br>
+      「★ <b>窗下墙体（腰壁）不要超过 0.65 m。</b>本项目取腰壁顶 0.45 m（在 0.65 以内）……（我犯的错是<b>把 0.65 m 抄成了 65%</b>——单位从长度变成了比例）」
+      <div class="src">prompt/konbini-3d-prompt-v4.md:302-305 <span class="grade o">Observed</span></div>
+    </div>
+  </div>
+  <div class="attrib">
+    <table>
+      <tr><td><span class="zh">谁抓到的</span><span class="en">Caught by</span></td><td><span class="zh">r19：GPT 通道与 Kimi 通道<b>独立指出同一处</b>（「从你给的 ▸ 数字推不出 65%」）</span><span class="en">r19: the GPT and Kimi channels pointed it out <b>independently</b> ("65% cannot be derived from the ▸ numbers you gave")</span></td></tr>
+      <tr><td><span class="zh">为什么人手没抓到</span><span class="en">Why humans missed it</span></td><td><span class="zh">65% 能被反向验算、符合「腰壁做高了吃掉室内」的直觉——声明内部自洽</span><span class="en">65% back-checks and matches the intuition that a tall sill wall eats the interior — the claim was internally consistent</span></td></tr>
+      <tr><td><span class="zh">改了什么</span><span class="en">What changed</span></td><td><span class="zh">v4 ㉔ 改为「腰壁 ≤ 0.65 m（长度，不是比例）」；三道闸门（numbering / sync / regression）PASS</span><span class="en">v4 ㉔ rewritten as "sill wall ≤ 0.65 m (a length, not a ratio)"; all three gates PASS</span></td></tr>
+      <tr><td><span class="zh">教训</span><span class="en">Lesson</span></td><td><span class="zh"><b>单位腐化</b>：每个数字先问「这是长度、比例还是计数？」</span><span class="en"><b>Unit corruption</b>: ask of every number first — length, ratio, or count?</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ── error 2 ── -->
+  <div class="errhead">
+    <span class="no">错误 ②</span>
+    <h3 style="margin:0"><span class="zh">「店内灯被货架端头挡住」——机制是错的</span><span class="en">"Interior lamps are blocked by shelf end-caps" — wrong mechanism</span></h3>
+  </div>
+  <div class="diagram">
+    <svg viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg" font-family="var(--sans)">
+      <!-- height axis: 0..2.6m, 1m = 88px, ground y=270 -->
+      <g>
+        <text x="120" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fg-2)">高度轴（米）· 机制示意</text>
+        <line x1="90" y1="270" x2="90" y2="30" stroke="var(--line-2)" stroke-width="1"/>
+        <g font-size="9.5" fill="var(--fg-3)">
+          <line x1="85" y1="270" x2="95" y2="270" stroke="var(--line-2)"/><text x="80" y="273" text-anchor="end">0</text>
+          <line x1="85" y1="226" x2="95" y2="226" stroke="var(--line-2)"/><text x="80" y="229" text-anchor="end">0.5</text>
+          <line x1="85" y1="182" x2="95" y2="182" stroke="var(--line-2)"/><text x="80" y="185" text-anchor="end">1.0</text>
+          <line x1="85" y1="140" x2="95" y2="140" stroke="var(--line-2)"/><text x="80" y="143" text-anchor="end">1.49</text>
+          <line x1="85" y1="96" x2="95" y2="96" stroke="var(--line-2)"/><text x="80" y="99" text-anchor="end">2.0</text>
+        </g>
+        <!-- ground -->
+        <line x1="90" y1="270" x2="470" y2="270" stroke="var(--fg)" stroke-width="1.5"/>
+        <!-- shelf box: 0..1.49m -->
+        <rect x="150" y="140" width="180" height="130" fill="var(--card-2)" stroke="var(--fg-2)" stroke-width="1.2"/>
+        <text x="240" y="132" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--fg-2)">货架顶 1.49 m</text>
+        <!-- shelf rows -->
+        <line x1="150" y1="182" x2="330" y2="182" stroke="var(--line-2)"/>
+        <line x1="150" y1="226" x2="330" y2="226" stroke="var(--line-2)"/>
+        <!-- old lamp inside shelf: y 0.6-1.2 -> y 270-0.9*88=191 .. 270-0.6*88=217; use 0.9 -->
+        <circle cx="240" cy="204" r="9" fill="var(--up)"/>
+        <text x="258" y="201" font-size="10.5" font-weight="800" fill="var(--up)">旧灯 y 0.6–1.2</text>
+        <text x="258" y="215" font-size="10" fill="var(--fg-2)">低于货架顶 → 被埋进货架体内</text>
+        <!-- new lamp above shelf: y 2.20 -> 270-193.6=76 -->
+        <circle cx="240" cy="76" r="9" fill="var(--down)"/>
+        <line x1="240" y1="85" x2="240" y2="138" stroke="var(--down)" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="258" y="73" font-size="10.5" font-weight="800" fill="var(--down)">修正后 y = 2.20</text>
+        <text x="258" y="87" font-size="10" fill="var(--fg-2)">高于货架顶 1.49 m ✓</text>
+        <!-- light cone hint -->
+        <polygon points="240,85 180,140 300,140" fill="color-mix(in srgb,var(--down) 10%,transparent)"/>
+      </g>
+      <!-- right: mechanism panel -->
+      <g>
+        <rect x="470" y="60" width="270" height="210" rx="8" fill="var(--card-2)" stroke="var(--line-2)"/>
+        <text x="486" y="84" font-size="11" font-weight="800" fill="var(--fg-2)">机制对质</text>
+        <text x="486" y="108" font-size="11" fill="var(--fg-2)">全工程 castShadow 仅 1 处</text>
+        <text x="486" y="126" font-size="11" fill="var(--fg-2)">（MOON 月光，源码检索实测）</text>
+        <text x="486" y="152" font-size="11" fill="var(--fg-2)">不投影的点光源会穿过几何体</text>
+        <text x="486" y="170" font-size="11" fill="var(--fg-2)">照亮——货架根本挡不住灯</text>
+        <text x="486" y="198" font-size="11.5" font-weight="800" fill="var(--up)">「被端头挡住」不成立</text>
+        <text x="486" y="222" font-size="11" font-weight="700" fill="var(--down)">真因：装高过低，被埋入</text>
+        <text x="486" y="246" font-size="10.5" fill="var(--fg-2)">改的是高度，不是阴影</text>
+      </g>
+      <text x="380" y="298" text-anchor="middle" font-size="9.5" fill="var(--fg-3)">机制示意（非渲染截图）：高度轴按源码数值绘制，货架/灯为符号化表示</text>
+    </svg>
+  </div>
+  <div class="quote">
+    <div class="q bad">
+      <b><span class="zh">v3 原文（错误）</span><span class="en">v3 (wrong)</span></b><br>
+      「单排灯被货架端头挡住」——把光照问题归因成遮挡问题
+      <div class="src">v4 ⑯ 引用并修正 <span class="grade o">Observed</span></div>
+    </div>
+    <div class="q good">
+      <b><span class="zh">v4 修正（现状）</span><span class="en">v4 (fixed)</span></b><br>
+      「源码自己写着 "so nothing occludes them"——真实原因是旧灯装在 y 0.6–1.2，<b>低于货架顶 1.49 m，灯被埋在货架体内</b>。改的是高度，不是阴影。」
+      <div class="src">prompt/konbini-3d-prompt-v4.md 卷首 ② <span class="grade o">Observed</span></div>
+    </div>
+  </div>
+  <div class="attrib">
+    <table>
+      <tr><td><span class="zh">谁抓到的</span><span class="en">Caught by</span></td><td><span class="zh">r19：GPT 通道指出机制不兼容（「不投影的点光源不会因为两者之间有货架而自动被遮挡」）+ 本机源码复核</span><span class="en">r19: the GPT channel flagged the incompatible mechanism, verified locally against the source</span></td></tr>
+      <tr><td><span class="zh">为什么人手没抓到</span><span class="en">Why humans missed it</span></td><td><span class="zh">「灯不够亮」和「灯被挡住」在现场看是一样的，遮挡因果符合直觉</span><span class="en">"Dim lamps" and "blocked lamps" look identical on screen; the occlusion story matches intuition</span></td></tr>
+      <tr><td><span class="zh">改了什么</span><span class="en">What changed</span></td><td><span class="zh">提示词改为灯装高 2.2 m「必须高于货架顶 1.49 m」；场景中灯抬到 y = 2.20</span><span class="en">The prompt now mandates lamp height 2.2 m above the 1.49 m shelf top; the scene's lamps were raised to y = 2.20</span></td></tr>
+      <tr><td><span class="zh">教训</span><span class="en">Lesson</span></td><td><span class="zh"><b>因果机制检查</b>：先确认病因再改——同一种画面症状可以有完全相反的修法</span><span class="en"><b>Causal-mechanism check</b>: confirm the cause first — identical symptoms can need opposite fixes</span></td></tr>
+    </table>
+  </div>
+
+  <div class="bound">
+    <b><span class="zh">为什么把错误放在报告最前面：</span><span class="en">Why the errors lead this report:</span></b>
+    <span class="zh">错误比结论更可迁移。结论只对这一个场景有效，而「把 0.65 m 抄成 65%」这类单位腐化、
+    「被挡住 vs 不够亮」这类机制误判，在任何工程里都会发生。仓库因此<b>故意保留</b> v1–v3 的原错未回溯修改。</span>
+    <span class="en">Errors transfer better than conclusions. A conclusion holds for one scene, but unit corruption
+    ("0.65 m" → "65%") and mechanism misattribution ("blocked" vs "dim") happen in any project.
+    The repo therefore <b>deliberately keeps</b> the original errors in v1–v3, unedited.</span>
+  </div>
+</section>
+
+<!-- ══════════ §3 时间线 ══════════ -->
+<section id="s3">
+  <div class="kicker">03 · TIMELINE · 时间线底座</div>
+  <h2><span class="zh">19 轮评审：前半程修画面，后半程修流程</span><span class="en">19 rounds: the first half fixes the picture, the second half fixes the process</span></h2>
+  <p class="sub">
+    <span class="zh">r2–r12 在修画面（从「暖光透不出」追到视线几何、再追到测量工具本身在说谎）；
+    r13–r20 把这套流程本身变成被评审对象，并沉淀成两个 skill。</span>
+    <span class="en">r2–r12 fix the picture (from "the warmth won't come through" to sight-line geometry, to the
+    measuring tool itself lying); r13–r20 turn the process into the object of review, and condense it into two skills.</span>
+  </p>
+
+  <div class="tlwrap">
+    <svg viewBox="0 0 1080 240" xmlns="http://www.w3.org/2000/svg" font-family="var(--sans)">
+      <!-- phase bands -->
+      <rect x="60" y="52" width="500" height="26" rx="6" fill="color-mix(in srgb,var(--accent) 10%,transparent)" stroke="var(--accent)" stroke-width="0.75"/>
+      <text x="310" y="69" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">前半程 · 修画面（r2–r12）</text>
+      <rect x="580" y="52" width="440" height="26" rx="6" fill="color-mix(in srgb,var(--down) 12%,transparent)" stroke="var(--down)" stroke-width="0.75"/>
+      <text x="800" y="69" text-anchor="middle" font-size="11" font-weight="700" fill="var(--down)">后半程 · 修流程与沉淀（r13–r20）</text>
+      <!-- axis -->
+      <line x1="60" y1="130" x2="1020" y2="130" stroke="var(--line-2)" stroke-width="1.5"/>
+      <!-- ticks: r2..r20 -> 19 nodes, x from 90 to 990, step 50 -->
+      <g id="ticks"></g>
+    </svg>
+    <div class="legend" style="margin-top:14px">
+      <span class="item"><span class="grade o">转折轮</span><span class="zh">本轮之后方向变了（8 轮）</span><span class="en">direction changed after this round (8)</span></span>
+      <span class="item"><span class="mono" style="color:var(--up);font-weight:800">◐</span><span class="zh">两通道结论存在分歧（6 轮）</span><span class="en">channels disagreed (6 rounds)</span></span>
+      <span class="item"><span class="mono" style="color:var(--fg-2);font-weight:800">◎</span><span class="zh">有 Codex 第三通道（4 轮）</span><span class="en">Codex third channel present (4 rounds)</span></span>
+    </div>
+  </div>
+
+  <div class="turn">
+    <div class="t"><div class="r">r3 · 转折</div><div class="h"><span class="zh">调亮度 → 修几何</span><span class="en">Brightness → geometry</span></div>
+      <div class="d"><span class="zh">货架根本不在视锥里；innerGlow（additive 0.96）贡献约 70%。删 additive 板、货架转 90° 做端头。</span><span class="en">Shelves weren't in the view cone at all; innerGlow (additive 0.96) contributed ~70%. Panels deleted, gondolas rotated 90° into end-caps.</span></div></div>
+    <div class="t"><div class="r">r4 · 转折</div><div class="h"><span class="zh">修画面 → 修量具</span><span class="en">Picture → instruments</span></div>
+      <div class="d"><span class="zh">指标不动，因为探针在说谎：bbox 不查遮挡、长面轴向搞反。给探针加覆盖率测试与 axis 字段。</span><span class="en">Metrics didn't move because the probes lied: bbox ignored occlusion, plane axes were inverted. Coverage tests and an axis field added.</span></div></div>
+    <div class="t"><div class="r">r5 · 转折 · 分歧</div><div class="h"><span class="zh">看得见 → 物理成立</span><span class="en">Visible → physically sound</span></div>
+      <div class="d"><span class="zh">首次引入第三通道；「你列的修前/修后对比表本身就是问题——它回答『比上次好吗』，不是『够了吗』」。</span><span class="en">Third channel debuts. "Your before/after table is itself the problem — it answers 'better than last time?', not 'good enough?'"</span></div></div>
+    <div class="t"><div class="r">r12 · 转折</div><div class="h"><span class="zh">修几何 → 修判决体系</span><span class="en">Geometry → verdict system</span></div>
+      <div class="d"><span class="zh">发现量具测的是「物件存在」不是「对比度变化」；判决词改 PARTIAL / INCONCLUSIVE，补负对照。</span><span class="en">The instrument measured "object presence", not "contrast change". Verdicts gained PARTIAL / INCONCLUSIVE plus a negative control.</span></div></div>
+    <div class="t"><div class="r">r13 · 转折</div><div class="h"><span class="zh">改场景 → 沉淀流程</span><span class="en">Scene → process assets</span></div>
+      <div class="d"><span class="zh">流程固化为 <code>gated-verification</code> skill（七闸门 + 七档判决词）。两通道分评协议与可用性。</span><span class="en">The process condenses into the <code>gated-verification</code> skill (seven gates, seven verdict words). Channels split: protocol vs usability.</span></div></div>
+    <div class="t"><div class="r">r16–r17 · 转折 · 分歧</div><div class="h"><span class="zh">探针数字 → 证据分类</span><span class="en">Probe numbers → evidence classes</span></div>
+      <div class="d"><span class="zh">「距离答对了，问题答错了」——鼻隠し是 0.5–1.0 mm 化妆铝板，不能承重。回执拆成 FG / FR / OS / RC 四类。</span><span class="en">"Right distance, wrong question" — the fascia is 0.5–1.0 mm cosmetic aluminium and cannot bear load. Receipts split into FG / FR / OS / RC.</span></div></div>
+    <div class="t"><div class="r">r19 · 转折 · 分歧</div><div class="h"><span class="zh">改作品 → 改规格</span><span class="en">Artwork → specification</span></div>
+      <div class="d"><span class="zh">三通道「尽力证伪」提示词，独立抓出 65% 与灯具两条硬错；规格本身也要能被推翻。</span><span class="en">Three channels try to falsify the prompt; two hard errors caught independently. The spec itself must be falsifiable.</span></div></div>
+    <div class="t"><div class="r">r20 · 分歧</div><div class="h"><span class="zh">闸门自己也要被检查</span><span class="en">The gates get gated too</span></div>
+      <div class="d"><span class="zh">prompt-selfcheck 落盘；两通道一致判「尚不具备公开发布条件」——先修退出码契约。</span><span class="en">prompt-selfcheck lands; both channels rule "not yet fit to publish" — fix the exit-code contract first.</span></div></div>
+  </div>
+
+  <div class="bound">
+    <b><span class="zh">关于评审史的呈现纪律：</span><span class="en">Discipline in presenting the review history:</span></b>
+    <span class="zh">① 评审量（19 轮 × 2–3 通道）只作为<b>错误的发现来源</b>呈现，不作为成品质量的论据——
+    自建自评、两通道同生态，轮数多不等于更可靠。<span class="grade i">Inferred</span><br>
+    ② 通道披露：GPT 通道 = 本机 Codex CLI（gpt-6-astra）；Kimi 通道 CLI 名为 k3，但端点上报的实际模型是
+    <b>K2.8 Preview</b>（r4 / r15 / r16 起档案明确声明「不作 K3 结论引用」）；r5 / r18 / r19 / r20 另有 Codex 第三通道。<span class="grade o">Observed</span><br>
+    ③ 完整逐轮表（含每轮 brief 核心问题与两通道结论）见项目档案
+    <code>deliverables/3d/konbini-review-2026-10-08/</code>；本页只标转折轮与分歧轮。</span>
+    <span class="en">① Review volume (19 rounds × 2–3 channels) is presented only as the <b>source of the error
+    discoveries</b>, never as evidence of artifact quality — self-built, self-reviewed, same ecosystem.<span class="grade i">Inferred</span><br>
+    ② Channel disclosure: the GPT channel = local Codex CLI (gpt-6-astra); the Kimi channel's CLI is named k3
+    but the endpoint reports <b>K2.8 Preview</b> (from r4/r15/r16 the archive states "not cited as K3
+    conclusions"); r5/r18/r19/r20 additionally had a Codex third channel.<span class="grade o">Observed</span><br>
+    ③ The full round-by-round table lives in the project archive <code>deliverables/3d/konbini-review-2026-10-08/</code>;
+    this page marks only turning points and divergences.</span>
+  </div>
+</section>
+
+<!-- ══════════ §4 条款转化 ══════════ -->
+<section id="s4">
+  <div class="kicker">04 · SPEC TRANSLATION · 条款转化</div>
+  <h2><span class="zh">从 198 行到 1,035 行：判断变成可移交规格</span><span class="en">From 198 to 1,035 lines: judgement becomes a transferable spec</span></h2>
+  <p class="sub">
+    <span class="zh">提示词不是先写的——它从产物<b>反推</b>而来，所以每条都能指回源码。四轮迭代把
+    「灯要亮一点」这类只能意会的判断，拆成 77 条带分级的条款。</span>
+    <span class="en">The prompt wasn't written first — it was <b>reverse-derived from the artifact</b>, so every
+    clause points back to source. Four iterations split "make the lamps brighter" into 77 graded clauses.</span>
+  </p>
+
+  <div class="bars">
+    <div class="bar dim"><div class="v">198</div><div class="b" style="height:38px"></div><div class="k">v1</div><div class="s">12.8 KB</div></div>
+    <div class="bar dim"><div class="v">313</div><div class="b" style="height:60px"></div><div class="k">v2</div><div class="s">~20 KB</div></div>
+    <div class="bar dim"><div class="v">643</div><div class="b" style="height:123px"></div><div class="k">v3</div><div class="s">~41 KB</div></div>
+    <div class="bar"><div class="v">1,035</div><div class="b" style="height:198px"></div><div class="k">v4</div><div class="s">79.6 KB · 77 条 / 18 节</div></div>
+  </div>
+  <p class="note" style="margin-top:10px">
+    <span class="zh">行数为 <code>wc -l</code> 实测<span class="grade o">Observed</span>；v1 / v4 字节数取自 README 与仓库文件<span class="grade o">Observed</span>。
+    <b>行数增长不证明质量提升</b>——v4 比 v3 长的原因之一是补上了 v3 缺失的单位、归一化与推导（r19 三通道指出）。</span>
+    <span class="en">Line counts measured with <code>wc -l</code><span class="grade o">Observed</span>; v1/v4 byte sizes from the README and repo files<span class="grade o">Observed</span>.
+    <b>Line-count growth does not prove quality</b> — part of why v4 is longer is that it restores the units,
+    normalisation and derivations v3 lacked (flagged by all three channels in r19).</span>
+  </p>
+
+  <h3 style="margin-top:30px"><span class="zh">一条条款的转化样本（错误 ① 那条）</span><span class="en">One clause's translation (the error-① clause)</span></h3>
+  <div class="cdiff">
+    <div class="c old">
+      <span class="tag">v3 · 直觉表述</span>
+      「★ <b>玻璃带占立面总高的 65%</b>。这一条不能妥协：……」
+      <div class="src">prompt/konbini-3d-prompt-v3.md:203</div>
+    </div>
+    <div class="c new">
+      <span class="tag">v4 · 规格表述 + 验证结果</span>
+      「★ <b>窗下墙体（腰壁）不要超过 0.65 m。</b>本项目取腰壁顶 0.45 m（在 0.65 以内）……每厘米腰壁遮约 2.7 cm 室内（1/tan20.3°）」
+      <div class="src">prompt/konbini-3d-prompt-v4.md:302-305 · 三道闸门 PASS</div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:10px">
+    <span class="zh">转化发生在三层：有数字 → 有单位 → 有推导。v3 停在第一层且数字是编的；
+    v4 补上「长度不是比例」、项目取值 0.45 m 与俯角几何（每厘米腰壁遮 2.7 cm 室内的来历）。</span>
+    <span class="en">The translation has three layers: a number → a unit → a derivation. v3 stopped at the first
+    layer with a fabricated number; v4 restores "a length, not a ratio", the project value 0.45 m, and the
+    elevation geometry (where "each cm of sill wall hides 2.7 cm of interior" comes from).</span>
+  </p>
+
+  <h3 style="margin-top:30px"><span class="zh">规则三级分级（v4 新增，三通道一致要求）</span><span class="en">Three-tier rule grading (new in v4, required by all three channels)</span></h3>
+  <table class="data">
+    <thead><tr>
+      <th><span class="zh">级别</span><span class="en">Tier</span></th>
+      <th><span class="zh">含义</span><span class="en">Meaning</span></th>
+      <th><span class="zh">改的代价</span><span class="en">Cost of changing</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="mono">Invariant</td>
+        <td><span class="zh">视觉关系不可破坏。本项目共 5 条：玻璃带占立面大部分高度（腰壁 ≤ 0.65 m 长度约束）/ 最亮的人造物是店面 / 暖色稀缺 / 明暗交界是硬边 / 痕迹各有成因</span><span class="en">Visual relations that must hold. Five here: glass band dominates the facade / the store is the brightest artificial thing / warm colour is scarce / light-dark edges are hard / every mark has a cause</span></td>
+        <td><span class="zh">改了就换了一类东西</span><span class="en">You've changed the category</span></td></tr>
+      <tr><td class="mono">Recipe</td>
+        <td><span class="zh">本项目验证有效的推荐做法（如货架排面 512×256 / 4 行 / 28–46 px）</span><span class="en">Practices this project validated (e.g. shelf facings 512×256 / 4 rows / 28–46 px)</span></td>
+        <td><span class="zh">可换，但须证明仍属同类</span><span class="en">Swappable, but prove it's still the same class</span></td></tr>
+      <tr><td class="mono">Implementation</td>
+        <td><span class="zh">具体代码 / 数值（如色阶灰阶 86/146/206/255）</span><span class="en">Concrete code / values (e.g. ramp greys 86/146/206/255)</span></td>
+        <td><span class="zh">原则上可整个替换</span><span class="en">Replaceable in principle</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px">
+    <span class="zh">出处：<code>prompt/konbini-3d-prompt-v4.md</code> §18。<span class="grade o">Observed</span>
+    这个分级存在的意义：让读者知道哪些必须照抄、哪些该重新推导——v1 的一句话原意是「同类关系不能变」，评审指出这个二分不够。</span>
+    <span class="en">Source: <code>prompt/konbini-3d-prompt-v4.md</code> §18.<span class="grade o">Observed</span>
+    The point of the grading: readers know what must be copied and what must be re-derived — v1's original
+    wording was a vague binary ("same-class relations must hold"), which the review found insufficient.</span>
+  </p>
+</section>
+
+<!-- ══════════ §5 消融证据墙 ══════════ -->
+<section id="s5">
+  <div class="kicker">05 · ABLATION EVIDENCE · 消融证据</div>
+  <h2><span class="zh">同一机位，开关一个构件：差异必须实测</span><span class="en">Same pose, toggle one part: the difference must be measured</span></h2>
+  <p class="sub">
+    <span class="zh">这些是<b>现版本</b>的开关对照（成品证据，不是过程图）。每对的差异区域由差分运算实测标出——
+    不是「我觉得变了」，是「这些像素变了」。</span>
+    <span class="en">These are <b>current-version</b> toggle comparisons (artifact evidence, not process shots).
+    Each pair's difference region is measured by image differencing — not "I feel it changed", but "these pixels changed".</span>
+  </p>
+
+  <div class="pair">
+    <div class="ph">
+      <span class="n"><span class="zh">防水板（apron）· r13</span><span class="en">Apron · r13</span></span>
+      <span class="stat">差异 1.34% · 区域 796×168 px</span>
+      <span class="grade o">Observed</span>
+    </div>
+    <div class="imgs">
+      <div class="fig">
+        <img src="media/history/apron_on.jpg" alt="apron on" loading="lazy">
+        <span class="lab">ON</span>
+        <span class="region" style="left:19.5%;top:52.6%;width:72.4%;height:17.7%"></span>
+        <div class="cap"><span class="zh">开：店头基部防水板在位（黄框为差分区域）</span><span class="en">On: apron in place (amber box = measured diff region)</span></div>
+      </div>
+      <div class="fig">
+        <img src="media/history/apron_off.jpg" alt="apron off" loading="lazy">
+        <span class="lab">OFF</span>
+        <div class="cap"><span class="zh">关：同一机位，防水板移除</span><span class="en">Off: same pose, apron removed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div class="ph">
+      <span class="n"><span class="zh">前落水管（竖樋）· r13</span><span class="en">Front downspout · r13</span></span>
+      <span class="stat">差异 2.44% · 区域 36×758 px</span>
+      <span class="grade o">Observed</span>
+    </div>
+    <div class="imgs">
+      <div class="fig">
+        <img src="media/history/spoutF_on.jpg" alt="spoutF on" loading="lazy">
+        <span class="lab">ON</span>
+        <span class="region" style="left:47.8%;top:12.4%;width:4.4%;height:72.2%"></span>
+        <div class="cap"><span class="zh">开：前落水管在位（黄框为差分区域）</span><span class="en">On: front downspout in place (amber box = measured diff region)</span></div>
+      </div>
+      <div class="fig">
+        <img src="media/history/spoutF_off.jpg" alt="spoutF off" loading="lazy">
+        <span class="lab">OFF</span>
+        <div class="cap"><span class="zh">关：同一机位，落水管移除</span><span class="en">Off: same pose, downspout removed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div class="ph">
+      <span class="n"><span class="zh">侧落水管（竖樋）· r17</span><span class="en">Side downspout · r17</span></span>
+      <span class="stat">差异 2.12% · 区域 42×840 px</span>
+      <span class="grade o">Observed</span>
+    </div>
+    <div class="imgs">
+      <div class="fig">
+        <img src="media/history/spoutS_on.jpg" alt="spoutS on" loading="lazy">
+        <span class="lab">ON</span>
+        <span class="region" style="left:47.1%;top:13.2%;width:5.5%;height:77.8%"></span>
+        <div class="cap"><span class="zh">开：侧落水管在位（r17 支架修正后复查）</span><span class="en">On: side downspout in place (re-checked after the r17 bracket fix)</span></div>
+      </div>
+      <div class="fig">
+        <img src="media/history/spoutS_off.jpg" alt="spoutS off" loading="lazy">
+        <span class="lab">OFF</span>
+        <div class="cap"><span class="zh">关：同一机位，落水管移除</span><span class="en">Off: same pose, downspout removed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bound">
+    <b><span class="zh">同样实测到的「近零差异」对（不拿去冒充对比图）：</span><span class="en">Also measured: near-zero-difference pairs (not passed off as comparisons):</span></b>
+    <span class="zh">点字块 ON/OFF 在该机位差异 <b>0.00%</b>（2×88 px）；r17 hero 机位的落水管 ON/OFF 差异 <b>0.01%</b>（6×20 px）——
+    在这个距离上，这些构件小到读不出来。<b>消融对照能证明「某构件在某机位可见/不可见」，
+    不能自动证明「改动有效」；开关是否有效，一律以差分实测为准。</b><span class="grade o">Observed</span></span>
+    <span class="en">Tactile paving ON/OFF at this pose differs by <b>0.00%</b> (2×88 px); the r17 hero-pose
+    downspout ON/OFF differs by <b>0.01%</b> (6×20 px) — at that distance these parts are unreadable.
+    <b>An ablation proves "visible / invisible at this pose"; it does not automatically prove "the change
+    worked". Whether a toggle does anything is always settled by the measured difference.</b><span class="grade o">Observed</span></span>
+  </div>
+</section>
+
+<!-- ══════════ §6 过程快照 ══════════ -->
+<section id="s6">
+  <div class="kicker">06 · PROCESS SNAPSHOTS · 过程快照</div>
+  <h2><span class="zh">当时的样子：过程图，不是成品图</span><span class="en">How it looked then: process shots, not the artifact</span></h2>
+  <p class="sub">
+    <span class="zh">这几张来自评审档案的 <code>renders/</code> 目录，拍摄于 r3 / r4 / r19 轮次期间。
+    <b>它们不是当前成品</b>——每张带红色压印条。保留它们是因为：结论会被覆盖，当时的画面不会。</span>
+    <span class="en">These come from the review archive's <code>renders/</code> directory, shot during rounds
+    r3 / r4 / r19. <b>They are not the current artifact</b> — each carries a red stamp bar. They're kept
+    because conclusions get overwritten; the frames of the moment don't.</span>
+  </p>
+  <div class="proc">
+    <div class="fig">
+      <img src="media/history/r3_glazing.jpg" alt="r3 glazing band crop" loading="lazy">
+      <span class="rl">r3</span>
+      <span class="stamp"><span class="zh">历史过程 · 非当前成品</span><span class="en">PROCESS · NOT CURRENT</span></span>
+      <div class="cap"><span class="zh">玻璃带局部（r3）：innerGlow 删除前的对比基准</span><span class="en">Glazing band crop (r3): the pre-deletion baseline for innerGlow</span></div>
+    </div>
+    <div class="fig">
+      <img src="media/history/r4_shelves.jpg" alt="r4 shelves crop" loading="lazy">
+      <span class="rl">r4</span>
+      <span class="stamp"><span class="zh">历史过程 · 非当前成品</span><span class="en">PROCESS · NOT CURRENT</span></span>
+      <div class="cap"><span class="zh">货架排面（r4）：探针轴向搞反之前的测量现场</span><span class="en">Shelf facings (r4): the measurement site before the probe axis fix</span></div>
+    </div>
+    <div class="fig">
+      <img src="media/history/r4_hero.jpg" alt="r4 hero" loading="lazy">
+      <span class="rl">r4</span>
+      <span class="stamp"><span class="zh">历史过程 · 非当前成品</span><span class="en">PROCESS · NOT CURRENT</span></span>
+      <div class="cap"><span class="zh">hero 机位（r4）：「暖光透不出」问题轮的全景</span><span class="en">Hero pose (r4): the wide shot of the "warmth won't come through" rounds</span></div>
+    </div>
+    <div class="fig">
+      <img src="media/history/r19_joint.jpg" alt="r19 joint" loading="lazy">
+      <span class="rl">r19</span>
+      <span class="stamp"><span class="zh">历史过程 · 非当前成品</span><span class="en">PROCESS · NOT CURRENT</span></span>
+      <div class="cap"><span class="zh">落水管接口（r19）：「管穿过板 ≠ 接上配件」的判据现场</span><span class="en">Downspout joint (r19): where "pipe through slab ≠ connected fitting" was established</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">
+    <span class="zh">轮次编号即当时的版本标识；精确拍摄日期档案未逐图记录<span class="grade u">Unknown</span>。
+    档案缺口如实列在 §7。r5–r12、r14–r16 无对应截图（档案 renders/ 目录只覆盖部分轮次）。</span>
+    <span class="en">The round number is the version marker of the time; exact capture dates were not recorded
+    per image<span class="grade u">Unknown</span>. Archive gaps are listed honestly in §7. Rounds r5–r12 and
+    r14–r16 have no corresponding screenshots (the archive's renders/ covers only some rounds).</span>
+  </p>
+</section>
+
+<!-- ══════════ §7 沉淀物与缺口 ══════════ -->
+<section id="s7">
+  <div class="kicker">07 · SEDIMENT &amp; GAPS · 沉淀与缺口</div>
+  <h2><span class="zh">过程留下的东西，和没做到的事</span><span class="en">What the process left behind — and what it didn't achieve</span></h2>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="zh">沉淀 ① gated-verification skill</span><span class="en">Sediment ① · gated-verification skill</span></h3>
+      <p class="note"><span class="zh">r13 落盘：七道闸门 + 七档判决词 + 两个脚本 + 两个病历。
+      核心主张：<b>没红过的探针只是装饰</b>——每道闸门都必须做过「该红时真红」的反证。</span>
+      <span class="en">Landed in r13: seven gates, seven verdict words, two scripts, two case files.
+      Core claim: <b>a probe that has never gone red is decoration</b> — every gate must have been
+      counterfactually proven to fail when it should.</span></p>
+    </div>
+    <div class="card">
+      <h3><span class="zh">沉淀 ② prompt-selfcheck skill</span><span class="en">Sediment ② · prompt-selfcheck skill</span></h3>
+      <p class="note"><span class="zh">r20 落盘：三道机器闸门（编号断裂 / 副本不同步 / 旧错复活）+ 19 项自动反证，零第三方依赖。
+      两通道一致判定：<b>尚不具备公开发布条件</b>（退出码契约是破的）——这条判定原样保留。</span>
+      <span class="en">Landed in r20: three machine gates (numbering breaks / desynchronised copies / resurrected
+      errors) plus 19 automated counterfactuals, zero dependencies. Both channels ruled: <b>not yet fit to
+      publish</b> (the exit-code contract is broken) — that verdict is kept verbatim.</span></p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:26px"><span class="zh">档案缺口（不假装）</span><span class="en">Archive gaps (not pretending)</span></h3>
+  <table class="data">
+    <thead><tr><th><span class="zh">缺口</span><span class="en">Gap</span></th><th><span class="zh">状态</span><span class="en">Status</span></th></tr></thead>
+    <tbody>
+      <tr><td><span class="zh">r5–r12、r14–r16 无独立 findings / 截图归档，改动只能从下一轮 brief 回溯</span><span class="en">No independent findings / screenshots archived for r5–r12, r14–r16; changes traceable only via the next round's brief</span></td><td><span class="grade u">Unknown</span></td></tr>
+      <tr><td><span class="zh">r1 未独立编号，根目录 brief/answer 的轮次归属无法确认</span><span class="en">r1 was never numbered; round attribution of the root brief/answer files is unconfirmed</span></td><td><span class="grade u">Unknown</span></td></tr>
+      <tr><td><span class="zh">r6 GPT 通道首跑空输出，实际使用重跑产物</span><span class="en">The r6 GPT channel's first run was empty; the rerun artifact was used</span></td><td><span class="grade o">Observed</span></td></tr>
+      <tr><td><span class="zh">色带「厚 0.28」疑似 0.028 的量纲错误，未核实，列开放项</span><span class="en">Colour band "thickness 0.28" suspected to be a 0.028 unit error; unverified, kept as an open item</span></td><td><span class="grade u">Unknown</span></td></tr>
+      <tr><td><span class="zh">帧率 / 加载耗时未测；仓库无自动化浏览器测试</span><span class="en">Frame rate / load time unmeasured; no automated browser test in the repo</span></td><td><span class="grade u">Unknown</span></td></tr>
+      <tr><td><span class="zh">仓库无 LICENSE 文件——方法论可参考，代码复制需授权</span><span class="en">No LICENSE file — methodology referenceable, code copying needs permission</span></td><td><span class="grade o">Observed</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="bound">
+    <b><span class="zh">最后，留给读者的三把尺子（不管你用什么工具）：</span><span class="en">Finally, three rulers for the reader (whatever tools you use):</span></b>
+    <span class="zh">① <b>单位腐化检查</b>——每个数字问一句：长度、比例还是计数？
+    ② <b>因果机制检查</b>——同一种画面症状，修法可能完全相反；先确认病因。
+    ③ <b>复活面检查</b>——改完一处，去摘要表、推文、精简版里各搜一遍，那是旧错复活率最高的三个地方。</span>
+    <span class="en">① <b>Unit-corruption check</b> — of every number ask: length, ratio, or count?
+    ② <b>Causal-mechanism check</b> — identical symptoms can need opposite fixes; confirm the cause first.
+    ③ <b>Resurrection-surface check</b> — after fixing one spot, search the summary table, the post, and the
+    condensed version: the three highest-yield places for old errors to come back.</span>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="ft">
+    <span><span class="zh">雨夜便利店街角 · 迭代过程报告</span><span class="en">Rainy-Night Konbini Corner · Iteration Report</span></span>
+    <span class="mono">78tyih / rainy-night-konbini</span>
+    <span><span class="zh">实截静帧 + 步进采集视频 · 证据分级标注</span><span class="en">Real captures + stepped-capture video · evidence-graded</span></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, body=document.body;
+  var q=new URLSearchParams(location.search);
+  var lang=q.get('lang') || localStorage.getItem('knb-lang') ||
+            (navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en';
+  var theme=q.get('theme') || localStorage.getItem('knb-theme') ||
+             (window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  function apply(){
+    body.setAttribute('data-lang',lang); root.setAttribute('data-theme',theme);
+    document.querySelectorAll('#langTgl button').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-lang')===lang);
+    });
+    var tb=document.getElementById('themeBtn');
+    tb.textContent = theme==='dark' ? '☀' : '☾';
+    tb.title = theme==='dark' ? '切换到日间 / switch to light' : '切换到夜间 / switch to dark';
+  }
+  document.querySelectorAll('#langTgl button').forEach(function(b){
+    b.addEventListener('click',function(){
+      lang=b.getAttribute('data-lang'); localStorage.setItem('knb-lang',lang); apply();
+    });
+  });
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    theme = theme==='dark'?'light':'dark'; localStorage.setItem('knb-theme',theme); apply();
+  });
+  apply();
+
+  /* timeline ticks: r2..r20, turning / divergence / third-channel marks */
+  var TURN=[3,4,5,12,13,16,17,19], DIV=[5,9,10,15,17,18], THIRD=[5,18,19,20];
+  var NS='http://www.w3.org/2000/svg';
+  var g=document.getElementById('ticks');
+  for(var r=2;r<=20;r++){
+    var x=90+(r-2)*50;
+    var isT=TURN.indexOf(r)>=0, isD=DIV.indexOf(r)>=0, is3=THIRD.indexOf(r)>=0;
+    var c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',130);
+    c.setAttribute('r',isT?7:4.5);
+    c.setAttribute('fill',isT?'var(--accent)':'var(--line-2)');
+    if(is3){c.setAttribute('stroke','var(--fg-2)');c.setAttribute('stroke-width','1.6');c.setAttribute('fill',isT?'var(--accent)':'var(--bg)');}
+    g.appendChild(c);
+    if(isD){
+      var d=document.createElementNS(NS,'circle');
+      d.setAttribute('cx',x+7); d.setAttribute('cy',130); d.setAttribute('r',2.6);
+      d.setAttribute('fill','var(--up)'); g.appendChild(d);
+    }
+    var t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',156); t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','9.5'); t.setAttribute('font-weight',isT?'800':'600');
+    t.setAttribute('fill',isT?'var(--fg)':'var(--fg-3)');
+    t.textContent='r'+r; g.appendChild(t);
+    if(isT){
+      var ln=document.createElementNS(NS,'line');
+      ln.setAttribute('x1',x); ln.setAttribute('y1',118); ln.setAttribute('x2',x); ln.setAttribute('y2',94);
+      ln.setAttribute('stroke','var(--accent)'); ln.setAttribute('stroke-width','1'); g.appendChild(ln);
+      var num=document.createElementNS(NS,'text');
+      num.setAttribute('x',x); num.setAttribute('y',88); num.setAttribute('text-anchor','middle');
+      num.setAttribute('font-size','9'); num.setAttribute('font-weight','800'); num.setAttribute('fill','var(--accent)');
+      num.textContent=TURN.indexOf(r)+1; g.appendChild(num);
+    }
+  }
+})();
+</script>
+</body>
+</html>

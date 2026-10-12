@@ -77,3 +77,14 @@ v1 → v4 的演进中，有两条错误是**被外部评审抓出来后才修�
 | 英文版发布文案 | `prompt/posts-*.md` 仅有中文版；英文版待定 |
 | 性能数据（帧率 / 加载耗时） | 未测。不编造 |
 | 授权 | 仓库无 LICENSE 文件。**方法论可参考，代码复制需授权** |
+
+## G. 媒体生产（2026-10-13 新增，Observed）
+
+| 声明 | 实测方式 | 结果 |
+|---|---|---|
+| 6 张静帧为 1600×1000 实时渲染实截 | Chrome headless（Metal）+ CDP 驱动诊断桥固定机位后 `Page.captureScreenshot` | 6/6 成功，机位参数见 `docs/media/shots/` 与 iteration.html |
+| 同机位两次实截 PSNR | ffmpeg `psnr` 滤镜比对两次 hero 机位截图 | average ≈ 31 dB。差异来自 `Math.random` 播种的门相位 / 蒸汽 / 涟漪（源码注释声明不保证跨运行复现），构图与色阶一致 |
+| 视频 68 s / 1600×812 / 24fps | ffmpeg 由 1632 帧序列编码（frozen-stepped 1392 帧 + live 240 帧） | 帧数 24×68=1632，逐帧计数吻合 |
+| 消融对差分区域 | PIL `ImageChops.difference` + 阈值 18 扫描 | apron 1.34%（796×168 px）；spoutF 2.44%（36×758 px）；spoutS 2.12%（42×840 px）；tactile 0.00%（2×88 px）；r17 hero 0.01%（6×20 px） |
+| 媒体制作方案经外部双通道评审 | brief-v2 → GPT 通道（gpt-6-astra）+ Kimi 通道（实际 K2.8 Preview），归档于 `deliverables/konbini-showcase-2026-10-12/` | 双方结论收敛后执行；Kimi「散点矩阵只编码类型不编码密度」「近零差异对不得冒充对比图」等纠正已落入 iteration.html |
+| 视频内文字（卡片 / 字幕） | 全部为 DOM 覆盖层烧录，无编造计数类字幕 | 结构性事实字幕 + 采集说明披露 |
