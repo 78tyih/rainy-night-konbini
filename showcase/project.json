@@ -1,0 +1,113 @@
+{
+  "slug": "rainy-night-konbini",
+  "owner": "78tyih",
+  "title": {
+    "zh": "雨夜便利店街角 · 微缩 3D 街景",
+    "en": "Rainy-Night Konbini Corner · Miniature 3D Street"
+  },
+  "one_liner": {
+    "zh": "一个 945 KB 的单文件 HTML：断网可开、零 UI、三渲二硬边，一座可以自由旋转缩放的雨夜便利店街角微缩模型。",
+    "en": "A 945 KB single-file HTML: offline-capable, zero UI, hard-edged cel shading — a rotatable miniature of a rainy-night convenience-store corner."
+  },
+  "status": {
+    "type": "3D 场景 / 生成式提示词资产",
+    "state": "已完成并通过 20 轮外部评审",
+    "entry": "dist/rainy-night-konbini.html"
+  },
+  "q1_problem": {
+    "zh": "难的不是「搭一个 3D 场景」，而是让一座微缩模型**看着像缩微模型而不是实景**，并且把「哪盏灯该亮、货架排面该多密」这类只能靠眼睛调的参数，写成别人能照抄的提示词。前者是渲染判断，后者是知识固化——两者都没有现成答案。",
+    "en": "The hard part is not building a 3D scene, but making a miniature read AS a miniature rather than a life-size street, and then writing down lamp brightness and shelf density — parameters that can only be tuned by eye — as a prompt others can copy. The first is a rendering judgement, the second is knowledge capture."
+  },
+  "q2_scenarios": [
+    {
+      "zh": "零成本验证一座街景的美学方向",
+      "en": "Validate a street's aesthetic direction at zero cost",
+      "before": "开建模软件、找贴图、等编译，改一盏灯要十分钟",
+      "after": "改提示词一行，刷新浏览器，两秒看到结果"
+    },
+    {
+      "zh": "把「只能意会」的微缩感固化成可移交规格",
+      "en": "Turn 'you know it when you see it' miniaturisation into a transferable spec",
+      "before": "调完即忘，下次从头试错",
+      "after": "77 条分级条款（Invariant / Recipe / Implementation），附源码出处表"
+    },
+    {
+      "zh": "离线演示 / 嵌入任意页面",
+      "en": "Offline demo / embed anywhere",
+      "before": "需要构建工具、CDN、贴图文件",
+      "after": "单个 .html，双击即开，不请求任何外部资源"
+    }
+  ],
+  "q2_minimal_path": {
+    "zh": "下载 dist/rainy-night-konbini.html → 双击打开 → 左键拖拽旋转、滚轮缩放、右键平移",
+    "en": "Download dist/rainy-night-konbini.html → double-click → drag to rotate, scroll to zoom, right-drag to pan"
+  },
+  "q3_architecture": {
+    "zh": "七段源码 → build.py 拼接 → 单文件产物。three.js r128 整段内联，产物自带诊断桥供探针测量场景。",
+    "en": "Seven source chunks → build.py concatenation → single-file artifact. three.js r128 fully inlined; the artifact exposes a diagnostic bridge so probes can measure the scene."
+  },
+  "modules": [
+    { "path": "src/01_boot.js", "duty": { "zh": "渲染器 / 相机 / 轨道控制 / 诊断桥", "en": "Renderer / camera / orbit controls / diagnostic bridge" } },
+    { "path": "src/02_textures.js", "duty": { "zh": "程序化 canvas 贴图（货架排面、地面、品牌色带）", "en": "Procedural canvas textures (shelf facings, ground, brand bands)" } },
+    { "path": "src/03_ground.js", "duty": { "zh": "人行道 / 车道 / 路缘 / 土壤", "en": "Sidewalk / roadway / curb / soil" } },
+    { "path": "src/04_store.js", "duty": { "zh": "店面主体：立面、腰壁、雨棚、招牌、店内灯光", "en": "Store mass: facade, sill wall, canopy, signage, interior lighting" } },
+    { "path": "src/05_props.js", "duty": { "zh": "货架、商品、室内道具", "en": "Gondolas, goods, interior props" } },
+    { "path": "src/06_effects.js", "duty": { "zh": "雨、涟漪、檐滴、水洼", "en": "Rain, ripples, drips, puddles" } },
+    { "path": "src/07_realworld.js", "duty": { "zh": "街外世界：电线杆、围墙、杂物、风", "en": "World outside: poles, walls, clutter, wind" } },
+    { "path": "src/build.py", "duty": { "zh": "拼接 three.min.js + 七段 → 单文件产物", "en": "Concatenate three.min.js + seven chunks → single file" } },
+    { "path": "src/_rig.py", "duty": { "zh": "探针夹具：取得 scene/camera/renderer 的稳定接口", "en": "Probe rig: stable access to scene/camera/renderer" } },
+    { "path": "prompt/", "duty": { "zh": "v1–v4 提示词全文 + 四个版本的发布文案", "en": "Prompt v1–v4 in full + four versions of release copy" } },
+    { "path": "skills/prompt-selfcheck/", "duty": { "zh": "沉淀出的提示词自检 skill（三道机器闸门）", "en": "The extracted prompt-selfcheck skill (three machine gates)" } }
+  ],
+  "q4_reuse": [
+    {
+      "what": { "zh": "单文件 three.js 场景骨架（boot + 诊断桥）", "en": "Single-file three.js scene skeleton (boot + diagnostic bridge)" },
+      "where": "src/01_boot.js",
+      "depends": "three.js（任意 r160 前的 UMD 构建）",
+      "license": "随本仓库，未附 LICENSE 文件——方法论可参考，代码复制需授权"
+    },
+    {
+      "what": { "zh": "三渲二硬边色阶（N=4 NearestFilter ramp）", "en": "Cel-shading hard-edge ramp (N=4 NearestFilter)" },
+      "where": "src/02_textures.js",
+      "depends": "无",
+      "license": "同上"
+    },
+    {
+      "what": { "zh": "程序化货架排面生成（512×256、4 行、排面 28–46 px）", "en": "Procedural shelf-facing generator (512×256, 4 rows, 28–46 px facings)" },
+      "where": "src/02_textures.js",
+      "depends": "无",
+      "license": "同上"
+    },
+    {
+      "what": { "zh": "AR(1) 风 + 涟漪扩张模型", "en": "AR(1) wind + ripple expansion model" },
+      "where": "src/06_effects.js",
+      "depends": "无",
+      "license": "同上"
+    },
+    {
+      "what": { "zh": "提示词自检 skill（三道闸门，零依赖）", "en": "prompt-selfcheck skill (three gates, zero dependencies)" },
+      "where": "skills/prompt-selfcheck/",
+      "depends": "Python 3 标准库",
+      "license": "同上"
+    }
+  ],
+  "evidence_grade": {
+    "dist_size_bytes": "Observed（ls -la，944,900）",
+    "clause_count_77": "Observed（check_prompt.py numbering PASS）",
+    "castShadow_once": "Observed（源码全文检索，唯一命中 MOON）",
+    "review_rounds_20": "Observed（deliverables/3d/konbini-review-2026-10-08/ 下 r5–r20 目录）",
+    "point_lights_9": "Observed（6 个声明站点共 15 处，kill list 移除 6 处，余 9 处）",
+    "math_random_47": "Observed（源码全文检索计数）",
+    "browser_smoke_test": "Unknown——本仓库未内置自动化浏览器测试"
+  },
+  "links": {
+    "showcase": "https://78tyih.github.io/rainy-night-konbini/showcase.html",
+    "artifact": "https://78tyih.github.io/rainy-night-konbini/dist/rainy-night-konbini.html",
+    "repo": "https://github.com/78tyih/rainy-night-konbini"
+  },
+  "extracted_from": {
+    "session_date": "2026-10-12",
+    "source_project": "WorkBuddy / 2026-10-07-08-10-39",
+    "note": "本仓库由进行中的设计会话抽取而成；prompt/ 下 v1–v3 保留了当时的错误，未回溯修改，作为「修订痕迹」证据。"
+  }
+}

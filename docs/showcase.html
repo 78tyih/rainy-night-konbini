@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雨夜便利店街角 · 微缩 3D 街景 | Rainy-Night Konbini Corner</title>
+<style>
+:root{
+  --bg:#f5f6f8; --bg-2:#eceef2; --card:#ffffff; --card-2:#f8f9fb;
+  --fg:#18191c; --fg-2:#4a4d55; --fg-3:#84878f;
+  --line:#dfe2e8; --line-2:#c9cdd6;
+  --accent:#4F8CFF; --accent-soft:#e8f0ff;
+  --up:#e0503c; --up-soft:#fdeeea;      /* 涨/红：中式惯例 */
+  --down:#3ea173; --down-soft:#e9f6ef;
+  --warn:#f2a83c; --warn-soft:#fdf3e3;
+  --shadow:0 1px 2px rgba(16,18,24,.05), 0 8px 24px rgba(16,18,24,.06);
+  --radius:14px; --radius-s:9px;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0f1114; --bg-2:#15181d; --card:#181b21; --card-2:#1e222a;
+  --fg:#f2f3f5; --fg-2:#b6bac2; --fg-3:#7d828c;
+  --line:#272b33; --line-2:#363b45;
+  --accent:#6fa0ff; --accent-soft:#1b2740;
+  --up:#ff7a63; --up-soft:#2e1a17;
+  --down:#4fbf8c; --down-soft:#13261f;
+  --warn:#f5b65a; --warn-soft:#2b2113;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.65;
+  -webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,.mono{font-family:var(--mono);font-size:.88em}
+
+/* ── 语言切换 ── */
+[data-lang="zh"] .en{display:none}
+[data-lang="en"] .zh{display:none}
+
+/* ── header ── */
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.hd{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.logo .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);flex:none;
+  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800}
+.hd .sp{flex:1}
+.tgl{display:flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;background:var(--card)}
+.tgl button{border:0;background:transparent;color:var(--fg-3);font:inherit;font-size:12px;font-weight:600;
+  padding:5px 11px;cursor:pointer;transition:.15s}
+.tgl button.on{background:var(--accent);color:#fff}
+.tgl button:not(.on):hover{color:var(--fg)}
+.icobtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line-2);background:var(--card);
+  color:var(--fg-2);cursor:pointer;display:grid;place-items:center;font-size:14px;transition:.15s}
+.icobtn:hover{color:var(--fg);border-color:var(--accent)}
+
+/* ── layout ── */
+main{max-width:1120px;margin:0 auto;padding:0 24px 80px}
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:0}
+.kicker{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.15;letter-spacing:-.028em;font-weight:800}
+h2{font-size:clamp(21px,2.6vw,27px);line-height:1.25;letter-spacing:-.02em;font-weight:750;margin-bottom:8px}
+h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.sub{color:var(--fg-2);font-size:clamp(15px,1.7vw,17px);max-width:760px}
+.note{color:var(--fg-3);font-size:13px}
+
+/* ── hero ── */
+.hero{padding:64px 0 52px}
+.hero .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);color:var(--fg-2)}
+.chip.b{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:650;
+  padding:10px 17px;border-radius:10px;border:1px solid var(--line-2);background:var(--card);
+  color:var(--fg);cursor:pointer;transition:.16s;text-decoration:none}
+.btn:hover{border-color:var(--accent);text-decoration:none;transform:translateY(-1px)}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.p:hover{filter:brightness(1.07)}
+
+/* ── stat strip ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px 16px}
+.stat .n{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:11.5px;color:var(--fg-3);margin-top:2px;font-weight:600}
+
+/* ── cards / grids ── */
+.grid{display:grid;gap:14px;margin-top:22px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card.tint{background:var(--card-2)}
+
+/* ── compare (Q1) ── */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.cmp .col{border-radius:var(--radius);padding:20px;border:1px solid var(--line)}
+.cmp .bad{background:var(--up-soft);border-color:color-mix(in srgb,var(--up) 30%,transparent)}
+.cmp .good{background:var(--down-soft);border-color:color-mix(in srgb,var(--down) 30%,transparent)}
+.cmp .h{display:flex;align-items:center;gap:8px;font-weight:750;font-size:14.5px;margin-bottom:12px}
+.cmp .h .m{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;
+  font-size:12px;font-weight:800;color:#fff;flex:none}
+.cmp .bad .m{background:var(--up)} .cmp .good .m{background:var(--down)}
+.cmp ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.cmp li{font-size:13.5px;color:var(--fg-2);padding-left:16px;position:relative;line-height:1.55}
+.cmp li:before{content:"";position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5}
+.bound{margin-top:14px;padding:14px 16px;border-radius:var(--radius-s);background:var(--warn-soft);
+  border:1px solid color-mix(in srgb,var(--warn) 32%,transparent);font-size:13px;color:var(--fg-2)}
+.bound b{color:var(--fg)}
+
+/* ── table ── */
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13.5px}
+th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);
+  background:var(--card-2)}
+td:first-child{font-weight:650}
+tbody tr:hover{background:var(--card-2)}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;
+  font-family:var(--mono);letter-spacing:.02em}
+.tag.i{background:var(--up-soft);color:var(--up)}
+.tag.r{background:var(--accent-soft);color:var(--accent)}
+.tag.m{background:var(--card-2);color:var(--fg-3);border:1px solid var(--line)}
+
+/* ── live demo ── */
+.demo{margin-top:22px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow)}
+.demo .bar{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--line);
+  background:var(--card-2);font-size:12px;color:var(--fg-3);font-weight:600}
+.demo .bar .lamp{display:flex;gap:5px}
+.demo .bar .lamp i{width:9px;height:9px;border-radius:50%;background:var(--line-2);display:block}
+.demo .bar .lamp i:first-child{background:var(--up)}
+.demo .bar .lamp i:nth-child(2){background:var(--warn)}
+.demo .bar .lamp i:nth-child(3){background:var(--down)}
+.demo iframe{display:block;width:100%;height:min(62vh,560px);border:0;background:#0b0d10}
+.demo .foot{padding:10px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--fg-3);
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ── FAQ accordion ── */
+.faq{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);overflow:hidden}
+details[open]{border-color:var(--accent)}
+summary{cursor:pointer;padding:15px 18px;font-weight:700;font-size:14.5px;display:flex;
+  align-items:center;gap:11px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary:before{content:"+";width:20px;height:20px;border-radius:6px;background:var(--card-2);
+  border:1px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:800;
+  color:var(--fg-2);flex:none;transition:.18s}
+details[open] summary:before{content:"−";background:var(--accent);border-color:var(--accent);color:#fff}
+details .body{padding:0 18px 16px 49px;font-size:13.5px;color:var(--fg-2);line-height:1.7}
+
+/* ── evidence grade ── */
+.grade{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+  padding:2px 8px;border-radius:5px;font-family:var(--mono)}
+.grade.o{background:var(--down-soft);color:var(--down)}
+.grade.i{background:var(--warn-soft);color:var(--warn)}
+.grade.u{background:var(--up-soft);color:var(--up)}
+
+/* ── footer ── */
+footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)}
+.ft{max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--fg-3)}
+
+@media (max-width:820px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3,.cmp{grid-template-columns:1fr}
+  .hd{padding:10px 16px} main{padding:0 16px 60px}
+  section{padding:40px 0}
+}
+</style>
+</head>
+<body data-lang="zh">
+
+<header>
+  <div class="hd">
+    <div class="logo"><span class="dot">雨</span><span>Konbini&nbsp;Corner</span></div>
+    <span class="sp"></span>
+    <div class="tgl" id="langTgl">
+      <button data-lang="zh" class="on">中</button>
+      <button data-lang="en">EN</button>
+    </div>
+    <button class="icobtn" id="themeBtn" title="切换日/夜">☾</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div class="kicker">SINGLE-FILE 3D · THREE.JS · CEL-SHADED</div>
+  <h1>
+    <span class="zh">雨夜便利店街角<br>一座 945 KB 的微缩模型</span>
+    <span class="en">Rainy-Night Konbini Corner<br>A 945 KB miniature</span>
+  </h1>
+  <p class="sub" style="margin-top:18px">
+    <span class="zh">断网可开、零 UI、三渲二硬边。左键旋转、滚轮缩放、右键平移——
+    看到的是一座从真实工程里反推出来的街角，以及把它固化成 77 条提示词的完整过程。</span>
+    <span class="en">Offline-capable, zero UI, hard-edged cel shading. Drag to rotate, scroll to zoom,
+    right-drag to pan — a street corner reverse-engineered from a real build, plus the full
+    process of freezing it into 77 clauses of prompt.</span>
+  </p>
+  <div class="chips">
+    <span class="chip b">945 KB 单文件</span>
+    <span class="chip">three.js r128 内联</span>
+    <span class="chip">零外部请求</span>
+    <span class="chip">77 条分级提示词</span>
+    <span class="chip">20 轮外部评审</span>
+  </div>
+  <div class="cta">
+    <a class="btn p" href="../dist/rainy-night-konbini.html" target="_blank">
+      <span class="zh">打开场景本体 ↗</span><span class="en">Open the scene ↗</span></a>
+    <a class="btn" href="https://github.com/78tyih/rainy-night-konbini">
+      <span class="zh">GitHub 仓库</span><span class="en">GitHub repo</span></a>
+    <a class="btn" href="#q4">
+      <span class="zh">看能复用什么</span><span class="en">What you can reuse</span></a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">944,900</div><div class="l"><span class="zh">产物字节（实测）</span><span class="en">artifact bytes (measured)</span></div></div>
+    <div class="stat"><div class="n">77</div><div class="l"><span class="zh">提示词条款 · 18 节</span><span class="en">prompt clauses · 18 sections</span></div></div>
+    <div class="stat"><div class="n">4</div><div class="l"><span class="zh">提示词版本（v1→v4）</span><span class="en">prompt versions (v1→v4)</span></div></div>
+    <div class="stat"><div class="n">20</div><div class="l"><span class="zh">外部评审轮次（r5–r20）</span><span class="en">external review rounds</span></div></div>
+  </div>
+</section>
+
+<!-- ══════════ LIVE DEMO ══════════ -->
+<section>
+  <div class="kicker">LIVE · 正式产物</div>
+  <h2><span class="zh">场景本体</span><span class="en">The artifact itself</span></h2>
+  <p class="sub">
+    <span class="zh">下面内嵌的就是 <code>dist/rainy-night-konbini.html</code> 本身，不是录屏、不是截图。
+    加载失败时点右上角「打开场景本体」。</span>
+    <span class="en">What's embedded below is <code>dist/rainy-night-konbini.html</code> itself —
+    not a recording, not a screenshot. If it fails to load, use "Open the scene".</span>
+  </p>
+  <div class="demo">
+    <div class="bar">
+      <span class="lamp"><i></i><i></i><i></i></span>
+      <span>rainy-night-konbini.html</span>
+      <span style="margin-left:auto" class="zh">来源版本 v4 · 正式产物</span>
+      <span style="margin-left:auto" class="en">source v4 · production artifact</span>
+    </div>
+    <iframe src="../dist/rainy-night-konbini.html" title="rainy night konbini" loading="lazy"></iframe>
+    <div class="foot">
+      <span class="zh">左键拖拽旋转 · 滚轮缩放 · 右键平移</span>
+      <span class="en">drag = rotate · scroll = zoom · right-drag = pan</span>
+      <span class="zh">无 UI · 无按钮 · 无 loading 条</span>
+      <span class="en">no UI · no buttons · no loading bar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Q1 ══════════ -->
+<section id="q1">
+  <div class="kicker">Q1 · PROBLEM</div>
+  <h2><span class="zh">解决什么问题</span><span class="en">What problem this solves</span></h2>
+  <p class="sub">
+    <span class="zh">难的不是「搭一个 3D 场景」，而是两件都没有现成答案的事。</span>
+    <span class="en">The hard part isn't building a 3D scene — it's two things with no off-the-shelf answer.</span>
+  </p>
+
+  <div class="cmp">
+    <div class="col bad">
+      <div class="h"><span class="m">✕</span><span class="zh">之前</span><span class="en">Before</span></div>
+      <ul>
+        <li><span class="zh">同一个模型，广角一拍就是实景；视角不收，微缩感根本不出现</span><span class="en">The same model reads as life-size under a wide lens; without a narrow angle, miniaturisation never appears</span></li>
+        <li><span class="zh">「灯亮一点」「货架密一点」这种判断无法移交，调完即忘</span><span class="en">"Brighter lamps", "denser shelves" can't be handed over — tuned once, forgotten immediately</span></li>
+        <li><span class="zh">改一盏灯要重开建模软件、等编译，试错以十分钟计</span><span class="en">Changing one lamp means reopening a modeller and waiting for a build — trial-and-error in tens of minutes</span></li>
+        <li><span class="zh">外部贴图 = 联网，单文件契约当场破掉</span><span class="en">External textures mean network — the single-file contract breaks on the spot</span></li>
+      </ul>
+    </div>
+    <div class="col good">
+      <div class="h"><span class="m">✓</span><span class="zh">之后</span><span class="en">After</span></div>
+      <ul>
+        <li><span class="zh">相机 fov 压到 32°，视角成为微缩感的主要来源</span><span class="en">Camera fov pinned at 32° — the lens becomes the primary source of miniaturisation</span></li>
+        <li><span class="zh">判断被拆成 77 条，并标出哪些是设计判断、哪些是项目取值</span><span class="en">Judgements split into 77 clauses, each marked as design judgement or project-specific value</span></li>
+        <li><span class="zh">改提示词一行，刷新浏览器，两秒看到结果</span><span class="en">Change one prompt line, refresh the browser, see the result in two seconds</span></li>
+        <li><span class="zh">贴图全部程序化 canvas 生成，断网照常渲染</span><span class="en">All textures procedurally generated on canvas — renders offline</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bound">
+    <b><span class="zh">边界（不假装全能）：</span><span class="en">Boundary (not pretending to be universal):</span></b>
+    <span class="zh">本项目不解决建模流程、不追求 PBR 真实感、不做交互 UI。
+    它验证的是一条特定路径——<b>用提示词固化美学方向</b>。换题材（室内、载具、人物）时，
+    77 条里的「项目取值」要重新推导，但「同类关系不能变」的那几条仍然成立。</span>
+    <span class="en">No modelling pipeline, no PBR realism, no interactive UI. It validates one specific
+    path — <b>freezing an aesthetic direction into a prompt</b>. For other subjects (interiors, vehicles,
+    figures) the project-specific values must be re-derived, but the "same-class relationships"
+    invariants still hold.</span>
+  </div>
+
+  <div class="faq">
+    <details open>
+      <summary><span class="zh">四问速览</span><span class="en">Four questions at a glance</span></summary>
+      <div class="body">
+        <span class="zh"><b>Q1 解决什么问题</b>——让微缩模型看着像微缩模型，并把只能意会的参数写成可照抄的提示词。<br>
+        <b>Q2 什么场景→什么结果</b>——零成本验证美学方向 / 固化可移交规格 / 离线演示。<br>
+        <b>Q3 什么结构</b>——七段源码经 build.py 拼成 945 KB 单文件；提示词从产物反推而来。<br>
+        <b>Q4 能复用什么</b>——单文件 three.js 骨架、硬边色阶、货架排面生成器、AR(1) 风 + 涟漪模型，以及 prompt-selfcheck。</span>
+        <span class="en"><b>Q1 Problem</b> — make a miniature read as a miniature, and write down eye-only parameters as a copyable prompt.<br>
+        <b>Q2 Scenario→Outcome</b> — zero-cost aesthetic validation / a transferable spec / offline demo.<br>
+        <b>Q3 Architecture</b> — seven source chunks concatenated by build.py into a 945 KB single file; the prompt is reverse-derived from the artifact.<br>
+        <b>Q4 Reuse</b> — single-file three.js skeleton, hard-edge ramp, shelf-facing generator, AR(1) wind + ripple model, and prompt-selfcheck.</span>
+      </div>
+    </details>
+    <details>
+      <summary><span class="zh">为什么故意保留错误？</span><span class="en">Why are the errors kept on purpose?</span></summary>
+      <div class="body">
+        <span class="zh">因为<code>prompt/</code> 下的 v1–v3 没有回溯修改。两条被外部评审抓出来的硬错——
+        「玻璃带占立面 65%」（编的数）和「灯被货架端头挡住」（错的机制）——原样留在旧版本里，
+        v4 用 ⚠ 标记逐条改正。<b>错误比结论更可迁移</b>：结论只对这一个场景有效，
+        而「把 0.65 m 抄成 65%」这类单位腐化，在任何工程里都会发生。</span>
+        <span class="en">Because <code>prompt/</code> v1–v3 were never back-edited. Two hard errors caught by external
+        review — "the glass band is 65% of the facade" (a fabricated number) and "lamps are blocked by shelf
+        end-caps" (a wrong mechanism) — stay in the old versions verbatim, with v4 correcting each under a ⚠ marker.
+        <b>Errors transfer better than conclusions</b>: a conclusion holds for one scene, but "transcribing
+        0.65 m as 65%" is a unit corruption that happens in any project.</span>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ══════════ Q2 ══════════ -->
+<section id="q2">
+  <div class="kicker">Q2 · SCENARIO → OUTCOME</div>
+  <h2><span class="zh">什么场景 → 什么结果</span><span class="en">Scenario → Outcome</span></h2>
+  <table>
+    <thead><tr>
+      <th><span class="zh">场景</span><span class="en">Scenario</span></th>
+      <th><span class="zh">之前</span><span class="en">Before</span></th>
+      <th><span class="zh">之后</span><span class="en">After</span></th>
+      <th><span class="zh">证据</span><span class="en">Evidence</span></th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="zh">零成本验证一条街景的美学方向</span><span class="en">Validate a street's aesthetic direction at zero cost</span></td>
+        <td><span class="zh">开建模软件、找贴图、等编译</span><span class="en">Open a modeller, hunt textures, wait for builds</span></td>
+        <td><span class="zh">改提示词一行，刷新浏览器，两秒看到结果</span><span class="en">One prompt line, one refresh, two seconds</span></td>
+        <td><span class="grade i">Inferred</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">把微缩感固化成可移交规格</span><span class="en">Freeze miniaturisation into a transferable spec</span></td>
+        <td><span class="zh">调完即忘，下次从头试错</span><span class="en">Tuned once, forgotten, retried from scratch</span></td>
+        <td><span class="zh">77 条分级条款 + 源码出处表</span><span class="en">77 graded clauses + a source-line provenance table</span></td>
+        <td><span class="grade o">Observed</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">离线演示 / 嵌入任意页面</span><span class="en">Offline demo / embed anywhere</span></td>
+        <td><span class="zh">需要构建工具、CDN、贴图文件</span><span class="en">Build tooling, a CDN, texture files</span></td>
+        <td><span class="zh">单个 .html，不请求任何外部资源</span><span class="en">One .html, zero external requests</span></td>
+        <td><span class="grade i">Inferred</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">防止提示词文档在多版本迭代中腐烂</span><span class="en">Stop a versioned prompt doc from rotting</span></td>
+        <td><span class="zh">人手数不出断号；旧错在摘要表里复活无人察觉</span><span class="en">Humans can't count past ~40; resurrected errors hide in summary tables</span></td>
+        <td><span class="zh">四道机器闸门 + 19 项自动反证</span><span class="en">Four machine gates + 19 automated counterfactuals</span></td>
+        <td><span class="grade o">Observed</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:14px">
+    <span class="zh">证据分级：<b>Observed</b> = 本机实测（源码检索 / 脚本判决 / 文件大小）；
+    <b>Inferred</b> = 文档自述，未独立复核。完整分级见 <code>showcase/evidence.md</code>。</span>
+    <span class="en">Evidence grades: <b>Observed</b> = measured locally (source search / script verdict / file size);
+    <b>Inferred</b> = self-reported, not independently verified. Full grading in <code>showcase/evidence.md</code>.</span>
+  </p>
+</section>
+
+<!-- ══════════ Q3 ══════════ -->
+<section id="q3">
+  <div class="kicker">Q3 · ARCHITECTURE</div>
+  <h2><span class="zh">什么结构</span><span class="en">Architecture</span></h2>
+  <p class="sub">
+    <span class="zh">七段源码 + 一段 three.js，经 <code>build.py</code> 拼成 945 KB 单文件。
+    提示词不是先写的——它是<b>从产物反推</b>出来的，所以每条都能指回源码行。</span>
+    <span class="en">Seven source chunks plus three.js, concatenated by <code>build.py</code> into a 945 KB single file.
+    The prompt wasn't written first — it was <b>reverse-derived from the artifact</b>, which is why every
+    clause points back to a source line.</span>
+  </p>
+
+  <div class="grid g3">
+    <div class="card"><h3>src/01_boot.js</h3><p class="note"><span class="zh">渲染器 / 相机 / 轨道控制 / 诊断桥。诊断桥用 getter 形式暴露 scene/camera/renderer，让探针能在不污染产物的前提下测量场景。</span><span class="en">Renderer / camera / orbit controls / diagnostic bridge. The bridge exposes scene/camera/renderer via getters so probes can measure the scene without polluting the artifact.</span></p></div>
+    <div class="card"><h3>src/02_textures.js</h3><p class="note"><span class="zh">程序化 canvas 贴图：货架排面（512×256、4 行、排面 28–46 px）、地面、三条品牌色带。硬边色阶 N=4 也在这里。</span><span class="en">Procedural canvas textures: shelf facings (512×256, 4 rows, 28–46 px each), ground, three brand bands. The N=4 hard-edge ramp lives here too.</span></p></div>
+    <div class="card"><h3>src/03_ground.js</h3><p class="note"><span class="zh">人行道 / 车道 / 路缘 / 土壤。地面的材质差是微缩感的地基。</span><span class="en">Sidewalk / roadway / curb / soil. The material contrast in the ground is the foundation of miniaturisation.</span></p></div>
+    <div class="card"><h3>src/04_store.js</h3><p class="note"><span class="zh">最大的一段：立面、腰壁、雨棚（双层）、招牌、落水管（36 件）、店内灯光。</span><span class="en">The largest chunk: facade, sill wall, double-layer canopy, signage, downpipe (36 parts), interior lighting.</span></p></div>
+    <div class="card"><h3>src/05_props.js</h3><p class="note"><span class="zh">货架、商品、室内道具。商品排面是「密」的来源，不是数量。</span><span class="en">Gondolas, goods, interior props. Density comes from facings, not object count.</span></p></div>
+    <div class="card"><h3>src/06_effects.js</h3><p class="note"><span class="zh">雨用 ribbon 而非 line（GL 线宽被钳到 1 设备像素）；涟漪用 r = r₀ + c·t^(2/3) 扩张。</span><span class="en">Rain as ribbons, not lines (GL line width is clamped to 1 device pixel); ripples expand as r = r₀ + c·t^(2/3).</span></p></div>
+    <div class="card"><h3>src/07_realworld.js</h3><p class="note"><span class="zh">街外世界：电线杆、围墙、杂物。风是 4 路叠加的 AR(1) 过程。</span><span class="en">The world outside: poles, walls, clutter. Wind is a sum of four AR(1) processes.</span></p></div>
+    <div class="card"><h3>src/build.py</h3><p class="note"><span class="zh">唯一构建入口：拼接 three.min.js + sorted(0*.js)，并注入诊断桥。</span><span class="en">The only build entry: concatenates three.min.js + sorted(0*.js) and injects the diagnostic bridge.</span></p></div>
+    <div class="card"><h3>prompt/ · skills/</h3><p class="note"><span class="zh">v1–v4 提示词 + 四版发布文案；以及沉淀出的 prompt-selfcheck（四道闸门）。</span><span class="en">Prompt v1–v4 plus four versions of release copy; and the extracted prompt-selfcheck (four gates).</span></p></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card tint">
+      <h3><span class="zh">实测事实（源码全文检索）</span><span class="en">Measured facts (full source search)</span></h3>
+      <table style="margin-top:10px">
+        <tbody>
+          <tr><td><span class="zh">castShadow 出现次数</span><span class="en">castShadow occurrences</span></td><td class="mono">1</td><td><span class="grade o">Observed</span></td></tr>
+          <tr><td><span class="zh">Math.random() 出现次数</span><span class="en">Math.random() occurrences</span></td><td class="mono">47</td><td><span class="grade o">Observed</span></td></tr>
+          <tr><td><span class="zh">店内点光（kill list 后）</span><span class="en">Interior point lights (after kill list)</span></td><td class="mono">9</td><td><span class="grade o">Observed</span></td></tr>
+          <tr><td><span class="zh">描边宽度区间（米）</span><span class="en">Outline width range (m)</span></td><td class="mono">0.008–0.06</td><td><span class="grade o">Observed</span></td></tr>
+          <tr><td><span class="zh">色阶灰阶</span><span class="en">Ramp grey levels</span></td><td class="mono">86/146/206/255</td><td><span class="grade o">Observed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card tint">
+      <h3><span class="zh">未测 / 缺口</span><span class="en">Not measured / gaps</span></h3>
+      <table style="margin-top:10px">
+        <tbody>
+          <tr><td><span class="zh">帧率 / 加载耗时</span><span class="en">Frame rate / load time</span></td><td><span class="grade u">Unknown</span></td></tr>
+          <tr><td><span class="zh">自动化浏览器测试</span><span class="en">Automated browser tests</span></td><td><span class="grade u">Unknown</span></td></tr>
+          <tr><td><span class="zh">参考图（提示词要求按图校准）</span><span class="en">Reference images (the prompt asks for them)</span></td><td><span class="grade u">Unknown</span></td></tr>
+          <tr><td><span class="zh">skill 跨项目可移植性</span><span class="en">Cross-project portability of the skill</span></td><td><span class="grade u">Unknown</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:10px"><span class="zh">不编造数字。缺口就是缺口。</span><span class="en">No invented numbers. A gap is a gap.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Q4 ══════════ -->
+<section id="q4">
+  <div class="kicker">Q4 · VALUE &amp; REUSE</div>
+  <h2><span class="zh">能复用什么</span><span class="en">What you can reuse</span></h2>
+  <table>
+    <thead><tr>
+      <th><span class="zh">可复用的东西</span><span class="en">Asset</span></th>
+      <th><span class="zh">在哪</span><span class="en">Where</span></th>
+      <th><span class="zh">依赖</span><span class="en">Depends on</span></th>
+      <th><span class="zh">怎么用</span><span class="en">How to use it</span></th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="zh">单文件 three.js 场景骨架（boot + 诊断桥）</span><span class="en">Single-file three.js skeleton (boot + diagnostic bridge)</span></td>
+        <td class="mono">src/01_boot.js</td>
+        <td><span class="zh">three.js r160 前的 UMD 构建</span><span class="en">three.js UMD build pre-r160</span></td>
+        <td><span class="zh">照抄 boot 段，把自己的场景内容填进 03–07 的位置</span><span class="en">Copy the boot section, drop your own content where 03–07 sit</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">三渲二硬边色阶（N=4 NearestFilter ramp）</span><span class="en">Cel-shading hard-edge ramp (N=4 NearestFilter)</span></td>
+        <td class="mono">src/02_textures.js</td>
+        <td><span class="zh">无</span><span class="en">None</span></td>
+        <td><span class="zh">N×1 canvas + 双 NearestFilter + 关 mipmap；插值会把阶梯糊成渐变</span><span class="en">N×1 canvas + NearestFilter both ways + mipmaps off; interpolation blurs the steps into a gradient</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">程序化货架排面生成器</span><span class="en">Procedural shelf-facing generator</span></td>
+        <td class="mono">src/02_textures.js</td>
+        <td><span class="zh">无</span><span class="en">None</span></td>
+        <td><span class="zh">512×256 / 4 行 / 排面 28–46 px / 相邻明度差 ≥30%；可读性下限 3×3 px</span><span class="en">512×256 / 4 rows / 28–46 px facings / adjacent value diff ≥30%; readability floor 3×3 px</span></td>
+      </tr>
+      <tr>
+        <td><span class="zh">AR(1) 风 + 涟漪扩张模型</span><span class="en">AR(1) wind + ripple expansion model</span></td>
+        <td class="mono">src/06_effects.js</td>
+        <td><span class="zh">无</span><span class="en">None</span></td>
+        <td><span class="zh">风 = 4 路独立 AR(1) 叠加；涟漪 r = r₀ + c·t^(2/3)</span><span class="en">Wind = four independent AR(1) sums; ripples r = r₀ + c·t^(2/3)</span></td>
+      </tr>
+      <tr>
+        <td><b>prompt-selfcheck</b>（四道闸门，零依赖）</td>
+        <td class="mono">skills/prompt-selfcheck/</td>
+        <td><span class="zh">Python 3 标准库</span><span class="en">Python 3 stdlib</span></td>
+        <td><span class="zh"><code>check_prompt.py selftest</code> 一条命令跑 19 项反证</span><span class="en">One command, <code>check_prompt.py selftest</code>, runs 19 counterfactuals</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="bound">
+    <b><span class="zh">授权边界：</span><span class="en">Licence boundary:</span></b>
+    <span class="zh">本仓库<b>没有 LICENSE 文件</b>。方法论、判据、反证做法可以自由参考和转载；
+    代码复制、二次分发、商用需先获得授权。事实与证据分级见 <code>showcase/evidence.md</code>。</span>
+    <span class="en">This repository ships <b>no LICENSE file</b>. The methodology, criteria and counterfactual
+    recipes may be referenced and quoted freely; copying, redistribution or commercial use of the code
+    requires permission first. Facts and evidence grading live in <code>showcase/evidence.md</code>.</span>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <h3><span class="zh">给你的三把尺子</span><span class="en">Three rulers you can use elsewhere</span></h3>
+      <p class="note">
+        <span class="zh"><b>① 单位腐化检查。</b> 每个数字问一句「这是长度、比例还是计数？」——本项目最贵的一个错就是把 0.65 m 抄成了 65%。<br><br>
+        <b>② 因果机制检查。</b> 「灯被挡住」和「灯不够亮」在现场看是一样的，修法完全不同。先确认病因，再改。<br><br>
+        <b>③ 复活面检查。</b> 改完一处，去摘要表、推文、精简版里各搜一遍——那是旧错复活率最高的三个地方。</span>
+        <span class="en"><b>① Unit-corruption check.</b> Ask of every number: length, ratio, or count? The most expensive error here was transcribing 0.65 m as 65%.<br><br>
+        <b>② Causal-mechanism check.</b> "Blocked lamps" and "dim lamps" look identical on screen but need opposite fixes. Confirm the cause before changing anything.<br><br>
+        <b>③ Resurrection-surface check.</b> After fixing one spot, search the summary table, the post, and the condensed version — the three highest-yield places for old errors to come back.</span>
+      </p>
+    </div>
+    <div class="card">
+      <h3><span class="zh">闸门自己也要被检查</span><span class="en">The gates get gated too</span></h3>
+      <p class="note">
+        <span class="zh"><code>prompt-selfcheck</code> 是在被抓出 13 类误报/漏报之后才长成这样的。
+        其中最危险的一条：把一条已修正的错误改回断言句，检查器因为豁免窗口太宽，照样报 PASS——
+        <b>在真的该红的时候绿了</b>，而且没有任何信号提示你"这次没查"。</span>
+        <span class="en"><code>prompt-selfcheck</code> grew into its current shape only after 13 classes of
+        false positive / false negative were caught. The most dangerous one: reverting a fixed error back into
+        an assertion still reported PASS because the exemption window was too wide — <b>green when it should
+        have been red</b>, with no signal that "this one wasn't actually checked".</span>
+      </p>
+      <p class="note" style="margin-top:10px"><span class="zh">所以它自带 19 项自动反证。<b>没红过的探针只是装饰。</b></span><span class="en">Which is why it ships with 19 automated counterfactuals. <b>A probe that has never gone red is decoration.</b></span></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="ft">
+    <span><span class="zh">雨夜便利店街角 · 微缩 3D 街景</span><span class="en">Rainy-Night Konbini Corner</span></span>
+    <span class="mono">78tyih / rainy-night-konbini</span>
+    <span><span class="zh">单文件 HTML · three.js r128 · 无 LICENSE</span><span class="en">Single-file HTML · three.js r128 · no LICENSE</span></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, body=document.body;
+  var q=new URLSearchParams(location.search);
+  var lang=q.get('lang') || localStorage.getItem('knb-lang') ||
+            (navigator.language||'').toLowerCase().indexOf('zh')===0?'zh':'en';
+  var theme=q.get('theme') || localStorage.getItem('knb-theme') ||
+             (window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  function apply(){
+    body.setAttribute('data-lang',lang); root.setAttribute('data-theme',theme);
+    document.querySelectorAll('#langTgl button').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-lang')===lang);
+    });
+    var tb=document.getElementById('themeBtn');
+    tb.textContent = theme==='dark' ? '☀' : '☾';
+    tb.title = theme==='dark' ? '切换到日间 / switch to light' : '切换到夜间 / switch to dark';
+  }
+  document.querySelectorAll('#langTgl button').forEach(function(b){
+    b.addEventListener('click',function(){
+      lang=b.getAttribute('data-lang'); localStorage.setItem('knb-lang',lang); apply();
+    });
+  });
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    theme = theme==='dark'?'light':'dark'; localStorage.setItem('knb-theme',theme); apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
