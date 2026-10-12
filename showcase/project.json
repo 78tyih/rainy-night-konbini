@@ -47,45 +47,126 @@
     "en": "Seven source chunks → build.py concatenation → single-file artifact. three.js r128 fully inlined; the artifact exposes a diagnostic bridge so probes can measure the scene."
   },
   "modules": [
-    { "path": "src/01_boot.js", "duty": { "zh": "渲染器 / 相机 / 轨道控制 / 诊断桥", "en": "Renderer / camera / orbit controls / diagnostic bridge" } },
-    { "path": "src/02_textures.js", "duty": { "zh": "程序化 canvas 贴图（货架排面、地面、品牌色带）", "en": "Procedural canvas textures (shelf facings, ground, brand bands)" } },
-    { "path": "src/03_ground.js", "duty": { "zh": "人行道 / 车道 / 路缘 / 土壤", "en": "Sidewalk / roadway / curb / soil" } },
-    { "path": "src/04_store.js", "duty": { "zh": "店面主体：立面、腰壁、雨棚、招牌、店内灯光", "en": "Store mass: facade, sill wall, canopy, signage, interior lighting" } },
-    { "path": "src/05_props.js", "duty": { "zh": "货架、商品、室内道具", "en": "Gondolas, goods, interior props" } },
-    { "path": "src/06_effects.js", "duty": { "zh": "雨、涟漪、檐滴、水洼", "en": "Rain, ripples, drips, puddles" } },
-    { "path": "src/07_realworld.js", "duty": { "zh": "街外世界：电线杆、围墙、杂物、风", "en": "World outside: poles, walls, clutter, wind" } },
-    { "path": "src/build.py", "duty": { "zh": "拼接 three.min.js + 七段 → 单文件产物", "en": "Concatenate three.min.js + seven chunks → single file" } },
-    { "path": "src/_rig.py", "duty": { "zh": "探针夹具：取得 scene/camera/renderer 的稳定接口", "en": "Probe rig: stable access to scene/camera/renderer" } },
-    { "path": "prompt/", "duty": { "zh": "v1–v4 提示词全文 + 四个版本的发布文案", "en": "Prompt v1–v4 in full + four versions of release copy" } },
-    { "path": "skills/prompt-selfcheck/", "duty": { "zh": "沉淀出的提示词自检 skill（三道机器闸门）", "en": "The extracted prompt-selfcheck skill (three machine gates)" } }
+    {
+      "path": "src/01_boot.js",
+      "duty": {
+        "zh": "渲染器 / 相机 / 轨道控制 / 诊断桥",
+        "en": "Renderer / camera / orbit controls / diagnostic bridge"
+      }
+    },
+    {
+      "path": "src/02_textures.js",
+      "duty": {
+        "zh": "程序化 canvas 贴图（货架排面、地面、品牌色带）",
+        "en": "Procedural canvas textures (shelf facings, ground, brand bands)"
+      }
+    },
+    {
+      "path": "src/03_ground.js",
+      "duty": {
+        "zh": "人行道 / 车道 / 路缘 / 土壤",
+        "en": "Sidewalk / roadway / curb / soil"
+      }
+    },
+    {
+      "path": "src/04_store.js",
+      "duty": {
+        "zh": "店面主体：立面、腰壁、雨棚、招牌、店内灯光",
+        "en": "Store mass: facade, sill wall, canopy, signage, interior lighting"
+      }
+    },
+    {
+      "path": "src/05_props.js",
+      "duty": {
+        "zh": "货架、商品、室内道具",
+        "en": "Gondolas, goods, interior props"
+      }
+    },
+    {
+      "path": "src/06_effects.js",
+      "duty": {
+        "zh": "雨、涟漪、檐滴、水洼",
+        "en": "Rain, ripples, drips, puddles"
+      }
+    },
+    {
+      "path": "src/07_realworld.js",
+      "duty": {
+        "zh": "街外世界：电线杆、围墙、杂物、风",
+        "en": "World outside: poles, walls, clutter, wind"
+      }
+    },
+    {
+      "path": "src/build.py",
+      "duty": {
+        "zh": "拼接 three.min.js + 七段 → 单文件产物",
+        "en": "Concatenate three.min.js + seven chunks → single file"
+      }
+    },
+    {
+      "path": "src/_rig.py",
+      "duty": {
+        "zh": "探针夹具：取得 scene/camera/renderer 的稳定接口",
+        "en": "Probe rig: stable access to scene/camera/renderer"
+      }
+    },
+    {
+      "path": "prompt/",
+      "duty": {
+        "zh": "v1–v4 提示词全文 + 四个版本的发布文案",
+        "en": "Prompt v1–v4 in full + four versions of release copy"
+      }
+    },
+    {
+      "path": "skills/prompt-selfcheck/",
+      "duty": {
+        "zh": "沉淀出的提示词自检 skill（三道机器闸门）",
+        "en": "The extracted prompt-selfcheck skill (three machine gates)"
+      }
+    }
   ],
   "q4_reuse": [
     {
-      "what": { "zh": "单文件 three.js 场景骨架（boot + 诊断桥）", "en": "Single-file three.js scene skeleton (boot + diagnostic bridge)" },
+      "what": {
+        "zh": "单文件 three.js 场景骨架（boot + 诊断桥）",
+        "en": "Single-file three.js scene skeleton (boot + diagnostic bridge)"
+      },
       "where": "src/01_boot.js",
       "depends": "three.js（任意 r160 前的 UMD 构建）",
       "license": "随本仓库，未附 LICENSE 文件——方法论可参考，代码复制需授权"
     },
     {
-      "what": { "zh": "三渲二硬边色阶（N=4 NearestFilter ramp）", "en": "Cel-shading hard-edge ramp (N=4 NearestFilter)" },
+      "what": {
+        "zh": "三渲二硬边色阶（N=4 NearestFilter ramp）",
+        "en": "Cel-shading hard-edge ramp (N=4 NearestFilter)"
+      },
       "where": "src/02_textures.js",
       "depends": "无",
       "license": "同上"
     },
     {
-      "what": { "zh": "程序化货架排面生成（512×256、4 行、排面 28–46 px）", "en": "Procedural shelf-facing generator (512×256, 4 rows, 28–46 px facings)" },
+      "what": {
+        "zh": "程序化货架排面生成（512×256、4 行、排面 28–46 px）",
+        "en": "Procedural shelf-facing generator (512×256, 4 rows, 28–46 px facings)"
+      },
       "where": "src/02_textures.js",
       "depends": "无",
       "license": "同上"
     },
     {
-      "what": { "zh": "AR(1) 风 + 涟漪扩张模型", "en": "AR(1) wind + ripple expansion model" },
+      "what": {
+        "zh": "AR(1) 风 + 涟漪扩张模型",
+        "en": "AR(1) wind + ripple expansion model"
+      },
       "where": "src/06_effects.js",
       "depends": "无",
       "license": "同上"
     },
     {
-      "what": { "zh": "提示词自检 skill（三道闸门，零依赖）", "en": "prompt-selfcheck skill (three gates, zero dependencies)" },
+      "what": {
+        "zh": "提示词自检 skill（三道闸门，零依赖）",
+        "en": "prompt-selfcheck skill (three gates, zero dependencies)"
+      },
       "where": "skills/prompt-selfcheck/",
       "depends": "Python 3 标准库",
       "license": "同上"
@@ -103,11 +184,13 @@
   "links": {
     "showcase": "https://78tyih.github.io/rainy-night-konbini/showcase.html",
     "artifact": "https://78tyih.github.io/rainy-night-konbini/dist/rainy-night-konbini.html",
-    "repo": "https://github.com/78tyih/rainy-night-konbini"
+    "repo": "https://github.com/78tyih/rainy-night-konbini",
+    "artifact_canonical": "https://github.com/78tyih/rainy-night-konbini/blob/main/dist/rainy-night-konbini.html"
   },
   "extracted_from": {
     "session_date": "2026-10-12",
     "source_project": "WorkBuddy / 2026-10-07-08-10-39",
     "note": "本仓库由进行中的设计会话抽取而成；prompt/ 下 v1–v3 保留了当时的错误，未回溯修改，作为「修订痕迹」证据。"
-  }
+  },
+  "pages_note": "GitHub Pages 只发布 docs/，故 docs/dist/ 下另存一份逐字节副本用于在线托管；仓库根 dist/ 为权威位置。"
 }
