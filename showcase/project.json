@@ -11,7 +11,7 @@
   },
   "status": {
     "type": "3D 场景 / 生成式提示词资产",
-    "state": "已完成并通过 20 轮外部评审",
+    "state": "已完成并通过 19 轮外部评审（r2–r20）",
     "entry": "dist/rainy-night-konbini.html"
   },
   "q1_problem": {
@@ -120,8 +120,8 @@
     {
       "path": "skills/prompt-selfcheck/",
       "duty": {
-        "zh": "沉淀出的提示词自检 skill（三道机器闸门）",
-        "en": "The extracted prompt-selfcheck skill (three machine gates)"
+        "zh": "沉淀出的提示词自检 skill（四道机器闸门）",
+        "en": "The extracted prompt-selfcheck skill (four machine gates)"
       }
     }
   ],
@@ -164,8 +164,8 @@
     },
     {
       "what": {
-        "zh": "提示词自检 skill（三道闸门，零依赖）",
-        "en": "prompt-selfcheck skill (three gates, zero dependencies)"
+        "zh": "提示词自检 skill（四道闸门，零依赖）",
+        "en": "prompt-selfcheck skill (four gates, zero dependencies)"
       },
       "where": "skills/prompt-selfcheck/",
       "depends": "Python 3 标准库",
@@ -176,7 +176,7 @@
     "dist_size_bytes": "Observed（ls -la，944,900）",
     "clause_count_77": "Observed（check_prompt.py numbering PASS）",
     "castShadow_once": "Observed（源码全文检索，唯一命中 MOON）",
-    "review_rounds_20": "Observed（deliverables/3d/konbini-review-2026-10-08/ 下 r5–r20 目录）",
+    "review_rounds_19": "Observed（deliverables/3d/konbini-review-2026-10-08/ 下 r2–r20 目录，共 19 轮）",
     "point_lights_9": "Observed（6 个声明站点共 15 处，kill list 移除 6 处，余 9 处）",
     "math_random_47": "Observed（源码全文检索计数）",
     "browser_smoke_test": "Unknown——本仓库未内置自动化浏览器测试"
@@ -191,9 +191,9 @@
     "artifact_canonical": "https://github.com/78tyih/rainy-night-konbini/blob/main/dist/rainy-night-konbini.html"
   },
   "media": {
-    "stills": "docs/media/shots/（6 张 1600×1000 实截，机位参数见 iteration.html）",
+    "stills": "docs/media/shots/（6 张实截：原始采集 1600×913，发行 JPG 1280×730；机位参数见 iteration.html）",
     "history": "docs/media/history/（评审档案 renders/ 精选：r3/r4 过程快照 + r13/r17 消融对 + r19 接口）",
-    "video": "docs/media/konbini-tour.mp4（68s / 1600×812 / 24fps；frozen-stepped + live 交互，采集说明见 iteration.html）",
+    "video": "docs/media/konbini-tour.mp4（68s / 发行 1280×650（采集 1600×812）/ 24fps；frozen-stepped + live 交互，采集说明见 iteration.html）",
     "gif": "docs/media/konbini-loop.gif（README 内嵌，440px 宽循环）",
     "psnr_same_pose_db": 31,
     "psnr_note": "同机位两次实截差异来自 Math.random 播种（门相位/蒸汽/涟漪），源码注释声明不保证跨运行复现"

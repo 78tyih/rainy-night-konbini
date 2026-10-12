@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | **类型** | 3D 场景 / 生成式提示词资产 |
-| **状态** | 已完成，经 20 轮外部评审（r5–r20） |
+| **状态** | 已完成，经 19 轮外部评审（r2–r20） |
 | **入口** | [`dist/rainy-night-konbini.html`](dist/rainy-night-konbini.html) —— 下载后双击即开 |
 | **在线** | <https://78tyih.github.io/rainy-night-konbini/showcase.html> |
 | **巡览视频** | [68 秒 · 实拍浏览器实时渲染](docs/media/konbini-tour.mp4)（[展示页内嵌播放](https://78tyih.github.io/rainy-night-konbini/showcase.html)） |

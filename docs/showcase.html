@@ -83,7 +83,7 @@ h3{font-size:15px;font-weight:700;margin-bottom:6px}
 .btn.p:hover{filter:brightness(1.07)}
 
 /* ── stat strip ── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px 16px}
 .stat .n{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .stat .l{font-size:11.5px;color:var(--fg-3);margin-top:2px;font-weight:600}
@@ -211,18 +211,25 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
     <span class="en">Rainy-Night Konbini Corner<br>A 945 KB miniature</span>
   </h1>
   <p class="sub" style="margin-top:18px">
-    <span class="zh">断网可开、零 UI、三渲二硬边。左键旋转、滚轮缩放、右键平移——
-    看到的是一座从真实工程里反推出来的街角，以及把它固化成 77 条提示词的完整过程。</span>
-    <span class="en">Offline-capable, zero UI, hard-edged cel shading. Drag to rotate, scroll to zoom,
-    right-drag to pan — a street corner reverse-engineered from a real build, plus the full
-    process of freezing it into 77 clauses of prompt.</span>
+    <span class="zh">一个可以下载、断网打开、拖着转的<b>雨夜便利店微缩模型</b>网页文件，
+    外加一份把「每个画面决定」写清楚的说明书——做别的微缩场景可以照抄。
+    <b>它不是游戏，不含建模教程，也不追求照片级真实。</b></span>
+    <span class="en">A downloadable, offline-capable, drag-to-rotate <b>miniature of a rainy-night konbini</b>
+    in one web file — plus a spec that writes down every visual decision, so you can copy it for
+    other miniature scenes. <b>It is not a game, not a modelling tutorial, not photorealism.</b></span>
+  </p>
+  <p class="note" style="margin-top:14px">
+    <span class="zh">下面是这个场景本体（可以直接拖着转），以及它<b>怎么做出来的完整复盘</b>——
+    包含两条被外部评审抓出的真错误，和每一步是怎么被改对的。</span>
+    <span class="en">Below: the scene itself (drag it around), and the <b>full post-mortem</b> of how it was
+    made — including two real errors external reviewers caught, and how each one was fixed.</span>
   </p>
   <div class="chips">
     <span class="chip b">945 KB 单文件</span>
     <span class="chip">three.js r128 内联</span>
-    <span class="chip">零外部请求</span>
+    <span class="chip">零外部请求 · 断网双击即开</span>
     <span class="chip">77 条分级提示词</span>
-    <span class="chip">20 轮外部评审</span>
+    <span class="chip">附迭代复盘报告</span>
   </div>
   <div class="cta">
     <a class="btn p" href="dist/rainy-night-konbini.html" target="_blank">
@@ -235,10 +242,9 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
       <span class="zh">看能复用什么</span><span class="en">What you can reuse</span></a>
   </div>
   <div class="stats">
-    <div class="stat"><div class="n">944,900</div><div class="l"><span class="zh">产物字节（实测）</span><span class="en">artifact bytes (measured)</span></div></div>
-    <div class="stat"><div class="n">77</div><div class="l"><span class="zh">提示词条款 · 18 节</span><span class="en">prompt clauses · 18 sections</span></div></div>
-    <div class="stat"><div class="n">4</div><div class="l"><span class="zh">提示词版本（v1→v4）</span><span class="en">prompt versions (v1→v4)</span></div></div>
-    <div class="stat"><div class="n">20</div><div class="l"><span class="zh">外部评审轮次（r5–r20）</span><span class="en">external review rounds</span></div></div>
+    <div class="stat"><div class="n">1</div><div class="l"><span class="zh">个 .html（944,900 字节 · 断网可开）</span><span class="en">.html file (944,900 bytes · works offline)</span></div></div>
+    <div class="stat"><div class="n">77</div><div class="l"><span class="zh">条可照抄的说明书条款 · 18 节</span><span class="en">copyable spec clauses · 18 sections</span></div></div>
+    <div class="stat"><div class="n">2</div><div class="l"><span class="zh">条被评审抓出的真错误（附复盘）</span><span class="en">real errors caught by review (post-mortem inside)</span></div></div>
   </div>
 </section>
 
@@ -277,18 +283,18 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
   <div class="kicker">MEDIA · 视频与静帧</div>
   <h2><span class="zh">看看它动起来</span><span class="en">Watch it move</span></h2>
   <p class="sub">
-    <span class="zh">68 秒巡览片，录自浏览器中交互式场景本体；六张静帧为实时渲染实截，机位参数写在每张图下面。
+    <span class="zh">68 秒巡览片，录自浏览器中交互式场景本体；六张静帧为实时渲染实截（发行 1280×730，原始采集 1600×913），机位参数写在每张图下面。
     完整采集说明与迭代过程见<a href="iteration.html"><b>迭代过程报告</b></a>。</span>
     <span class="en">A 68-second tour recorded from the interactive artifact itself; six stills are real-render
-    captures with their camera poses printed below each frame. Full capture disclosure and the iteration
-    story live in the <a href="iteration.html"><b>iteration report</b></a>.</span>
+    captures (1280×730 as shipped, 1600×913 captured) with their camera poses printed below each frame.
+    Full capture disclosure and the iteration story live in the <a href="iteration.html"><b>iteration report</b></a>.</span>
   </p>
 
   <div class="video">
     <div class="bar">
       <span>konbini-tour.mp4</span>
-      <span style="margin-left:auto" class="zh">68 秒 · 1600×812 · 24fps</span>
-      <span style="margin-left:auto" class="en">68s · 1600×812 · 24fps</span>
+      <span style="margin-left:auto" class="zh">68 秒 · 1280×650 发行 · 24fps</span>
+      <span style="margin-left:auto" class="en">68s · 1280×650 as shipped · 24fps</span>
     </div>
     <video controls preload="metadata" poster="media/shots/hero.jpg">
       <source src="media/konbini-tour.mp4" type="video/mp4">
@@ -492,7 +498,7 @@ footer{padding:36px 24px;border-top:1px solid var(--line);background:var(--bg-2)
       <h3><span class="zh">实测事实（源码全文检索）</span><span class="en">Measured facts (full source search)</span></h3>
       <table style="margin-top:10px">
         <tbody>
-          <tr><td><span class="zh">castShadow 出现次数</span><span class="en">castShadow occurrences</span></td><td class="mono">1</td><td><span class="grade o">Observed</span></td></tr>
+          <tr><td><span class="zh">castShadow = true 的光源</span><span class="en">Lights with castShadow=true</span></td><td class="mono">1</td><td><span class="grade o">Observed</span></td></tr>
           <tr><td><span class="zh">Math.random() 出现次数</span><span class="en">Math.random() occurrences</span></td><td class="mono">47</td><td><span class="grade o">Observed</span></td></tr>
           <tr><td><span class="zh">店内点光（kill list 后）</span><span class="en">Interior point lights (after kill list)</span></td><td class="mono">9</td><td><span class="grade o">Observed</span></td></tr>
           <tr><td><span class="zh">描边宽度区间（米）</span><span class="en">Outline width range (m)</span></td><td class="mono">0.008–0.06</td><td><span class="grade o">Observed</span></td></tr>
