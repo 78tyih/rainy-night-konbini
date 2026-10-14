@@ -30,5 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # runner 没有 GPU：软件渲染实测约 0.8 fps @1600×900。
+      # 所以 CI 用更小的画布与更少的预热帧——确定性验的是「同一 URL 两次
+      # 逐字节相同」，与画布大小无关，缩小不损失判别力，只省时间。
       - name: render gate (quick)
-        run: node tools/gate.js --quick
+        run: node tools/gate.js --quick --w 800 --h 450 --t 1 --timeout 600

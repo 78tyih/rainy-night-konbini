@@ -37,7 +37,8 @@ function ok(name, pass, detail) {
 const md5 = b => crypto.createHash('md5').update(b).digest('hex');
 
 async function waitReady(cdp, label) {
-  const deadline = Date.now() + TIMEOUT * 1000;
+  const started = Date.now();
+  const deadline = started + TIMEOUT * 1000;
   let last = '';
   for (;;) {
     last = await cdp.eval(`(function(){
@@ -49,7 +50,19 @@ async function waitReady(cdp, label) {
     })()`);
     if (last === 'READY') return true;
     if (last.startsWith('ERRORS:')) { ok(label + ' · protocol', false, last); return false; }
-    if (Date.now() > deadline) { ok(label + ' · ready', false, 'timeout, last=' + last); return false; }
+    if (Date.now() > deadline) {
+      /* 超时信息里必须带上「跑到第几帧 / 花了多久 / 每秒几帧」。
+         只写 timeout 的话，看到的人第一反应是「协议坏了」，
+         实际最常见的原因是这台机器没有 GPU：CI 上软件渲染只有 0.8 fps，
+         150 秒才跑到第 122 帧，而 warmFrames 需要 180 帧。 */
+      const el = (Date.now() - started) / 1000;
+      const m = /frame=(\d+)/.exec(last);
+      const fps = m ? (m[1] / el).toFixed(2) : '?';
+      ok(label + ' · ready', false,
+         `timeout after ${el.toFixed(0)}s, last=${last}, ~${fps} fps —— `
+         + `把 --t 调小或 --w/--h 调小（软件渲染的 runner 很慢）`);
+      return false;
+    }
     await sleep(200);
   }
 }
