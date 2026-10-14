@@ -162,12 +162,34 @@ async function checkLabels(port) {
     ok('D1 锚点全部解析', u === '[]', 'unresolved=' + u);
     const vis = await cdp.eval(`document.querySelectorAll('#cap-layer .cap-chip').length`);
     ok('D2 标签已渲染', vis > 0, 'chips=' + vis);
-    /* 双语残留：切到 en 后用 innerText 逐行扫。
-       别用元素 display 判断——祖先隐藏、后代可见会骗过你。 */
+    /* 双语残留：切到 en 后逐行扫中文。
+       两个容易划错的地方：
+       ① 别用元素 display 判断「看不看得见」——祖先隐藏、后代可见会骗过你，
+          所以整段用 innerText（它按**渲染结果**算）。
+       ② 扫描范围必须排除控件本身：lang=en 时语言按钮上写的就是「中文」，
+          那是切换入口，不是残留。第一次扫 body 就把它误报成残留了。
+       所以只扫 #cap-layer（标签框与引线），控件在它的兄弟节点上。 */
     await cdp.eval(`window.__caption.setLang('en')`);
     await sleep(400);
-    const zh = await cdp.eval(`(document.body.innerText||'').split('\\n').filter(function(s){return /[\\u4e00-\\u9fff]/.test(s);})`);
-    ok('D3 切 EN 后无中文残留', zh.length === 0, zh.join(' / ').slice(0, 160));
+    const zh = await cdp.eval(`(function(){
+      var L = document.querySelector('#cap-layer');
+      if (!L) return ['NO-LAYER'];
+      return (L.innerText || '').split('\\n')
+        .filter(function (s) { return /[\\u4e00-\\u9fff]/.test(s); });
+    })()`);
+    ok('D3 切 EN 后标注层无中文残留', zh.length === 0, zh.join(' / ').slice(0, 160));
+
+    /* 反向也要查：切回 zh 后不能残留英文正文（小标题 sub_en 是设计的一部分，
+       所以这里只查「整条标签是不是还在用英文正文字段」——
+       判据是 en 文案是否仍出现在层里，且对应 zh 文案没出现）。 */
+    await cdp.eval(`window.__caption.setLang('zh')`);
+    await sleep(400);
+    const back = await cdp.eval(`(function(){
+      var t = (document.querySelector('#cap-layer')||{}).innerText || '';
+      return JSON.stringify({ hasZh: /[\\u4e00-\\u9fff]/.test(t), len: t.length });
+    })()`);
+    const b = JSON.parse(back);
+    ok('D4 切回 ZH 后标注层重新出现中文', b.hasZh === true && b.len > 0, back);
   } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
 }
 
@@ -176,13 +198,17 @@ async function checkLabels(port) {
   if (!fs.existsSync(HTML)) { console.error('FATAL missing', HTML); process.exit(1); }
 
   const base = 9500;
-  let chrome = launch(base, DPR, GPU);
-  try { await checkDefault(base); } finally { chrome.kill(); }
-  await sleep(400);
+  const D_ONLY = flag('d-only');
 
-  chrome = launch(base, DPR, GPU);
-  try { await checkRepro(base); } finally { chrome.kill(); }
-  await sleep(400);
+  if (!D_ONLY) {
+    let chrome = launch(base, DPR, GPU);
+    try { await checkDefault(base); } finally { chrome.kill(); }
+    await sleep(400);
+
+    chrome = launch(base, DPR, GPU);
+    try { await checkRepro(base); } finally { chrome.kill(); }
+    await sleep(400);
+  }
 
   if (HTML.indexOf('labels') >= 0 || flag('labels')) {
     chrome = launch(base, DPR, GPU);

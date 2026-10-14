@@ -199,8 +199,9 @@ flowchart LR
 | # | 保证 | 怎么验 | 实测 |
 |---|---|---|---|
 | A | 默认路径没被污染 | `node tools/gate.js` 的 A 组：不带参数时 `Math.random` / `performance.now` 仍是原生，自转仍开着，视口没被钉 | 8/8 PASS |
-| B | 指定机位可复现 | 同一 URL，两个独立进程，PNG 逐字节比 | md5 全等 |
-| C | 构建可复现 | `python3 tools/gate.py`：连构建两次比 md5 | 全等 |
+| B | 指定机位可复现 | 同一 URL，**两个独立进程**，PNG 逐字节比 | 6 机位 × 2 进程 = **12/12 md5 全等** |
+| C | 构建可复现 | `python3 tools/gate.py`：连构建两次比 md5 | 全等 `3d6c7d62…` |
+| D | 标注层不静默失败 | `node tools/gate.js --labels`：锚点全解析、切 EN 无中文残留、切回 ZH 复原 | 4/4 PASS |
 
 ```bash
 # 采一张

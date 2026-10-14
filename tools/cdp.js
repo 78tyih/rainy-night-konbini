@@ -74,7 +74,14 @@ function launch(port, dpr, gpu) {
     '--disable-features=CalculateNativeWinOcclusion',
     'about:blank'
   ], { stdio: 'ignore' });
+  /* kill 必须**幂等并可注销**：一次 gate 会起十几个 Chrome，
+     每次都挂一个 process.on('exit') 会撞 MaxListenersExceededWarning，
+     而且退出时那十几个监听器全都还会跑一遍。 */
+  let killed = false;
   const kill = () => {
+    if (killed) return;
+    killed = true;
+    process.removeListener('exit', kill);
     try { p.kill(); } catch (e) {}
     try { fs.rmSync(udd, { recursive: true, force: true }); } catch (e) {}
   };
