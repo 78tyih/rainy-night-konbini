@@ -51,10 +51,11 @@
 </tr>
 </table>
 
-> 采集条件：Chrome headless + Metal，CDP 驱动诊断桥固定机位、冻结时间轴后 `Page.captureScreenshot`。
-> 原始采集 1600×913，发行 JPEG 1280×730。同机位两次实截 PSNR ≈ 31 dB
-> （差异来自 `Math.random` 播种的门相位/蒸汽/涟漪，源码注释已声明不保证跨运行复现）。
-> 完整采集说明与 14 张过程图（含消融 ON/OFF 对）见[**迭代过程报告**](docs/iteration.html)。
+> **采集条件变了**：这六张是旧流水线（注入 `FREEZE` + 手写机位）出的，同机位两次实截 PSNR ≈ 31 dB ——
+> 差的不是机位，是 `Math.random` 播种的门相位 / 蒸汽 / 涟漪，以及「冻结前到底跑了多少帧」。
+> 现在机位住进了源码（`src/00_shot.js` 的 `SHOTS` 表），采集走 URL 协议，**同 URL 三次独立进程出图逐字节相同**。
+> 完整采集说明与 14 张过程图（含消融 ON/OFF 对）见[**迭代过程报告**](docs/iteration.html)；
+> 协议与实测见下一节。
 
 ---
 
@@ -131,6 +132,7 @@ flowchart LR
 
 | 位置 | 职责 | 边界 |
 |---|---|---|
+| `src/00_shot.js` | **确定性截图层**：具名机位 `SHOTS`、种子化 PRNG、虚拟时钟、钉死 DPR | 必须排在所有场景块之前；不带 `?capture=1` 时是纯空操作 |
 | `src/01_boot.js` | 渲染器 / 相机 / 轨道控制 / 诊断桥 | 不建场景内容 |
 | `src/02_textures.js` | 程序化 canvas 贴图（货架排面、地面、品牌色带） | 不读外部图片 |
 | `src/03_ground.js` | 人行道 / 车道 / 路缘 / 土壤 | 不含建筑 |
@@ -138,14 +140,104 @@ flowchart LR
 | `src/05_props.js` | 货架、商品、室内道具 | 不含建筑与天气 |
 | `src/06_effects.js` | 雨、涟漪、檐滴、水洼 | 不含静物 |
 | `src/07_realworld.js` | 街外世界：电线杆、围墙、杂物、风 | 不含店面内部 |
-| `src/build.py` | 拼接 `three.min.js` + 七段 → 单文件，注入诊断桥 | 唯一构建入口 |
+| `src/build.py` | 拼接 `three.min.js` + 八段 → 单文件，注入诊断桥 | 唯一构建入口 |
 | `src/_rig.py` | 探针夹具：取得 `scene` / `camera` / `renderer` | 仅测试用 |
+| `tools/shot.js` | 确定性截图驱动（CDP，零依赖） | 只传 `?shot=`，不存机位 |
+| `tools/gate.py` | 构建侧闸门：连构建两次比 md5、块顺序、语法 | 不启动浏览器 |
+| `tools/gate.js` | 渲染侧闸门：默认路径未污染 + 两进程逐字节相同 | 需要 Chrome |
+| `templates/realtime-caption/` | 图内双语标注子模板 | 不进主产物 |
 | `prompt/` | v1–v4 提示词全文 + 四版发布文案 | v1–v3 保留当时错误，未回溯 |
 | `skills/prompt-selfcheck/` | 沉淀出的提示词自检 skill | 零第三方依赖 |
 
 ---
 
-## 4 · 能复用什么
+## 4 · 确定性截图协议（v1）
+
+**为什么要有这一节。** 以前截图靠注入内部变量：`window.FREEZE.on = true; ctrl.az = 0.86; …`。
+它看起来是确定的，实测同机位两次实截 **PSNR ≈ 31 dB**。差的不是机位，是四件没人管的事：
+
+| 漏洞 | 后果 |
+|---|---|
+| `Math.random` 在**构建期**就被消费（门相位、雨的初始相位） | 首帧不可复现——冻结只能冻住运行时 |
+| 墙钟推进（06 走 `Clock`，07 走 rAF 时间戳，两个钟） | 「冻结前跑了多少帧」每次都不一样 |
+| 相机靠阻尼收敛（`az += (azT-az) * dt*8`） | 落点取决于跑了多少帧，掉一帧就差一点 |
+| DPR / 画布尺寸随机器走 | 雨的 `uRes` 变了，像素栅格就变了 |
+
+现在这四件全部钉死，并且**不带任何参数时行为与改动前一模一样**。
+
+### 参数表
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `capture` | 无 | 必须是 `1` 才进入确定模式。**不带它就完全不生效** |
+| `v` | `1` | 协议版本；填别的直接报错退出，不静默降级 |
+| `shot` | 无 | 命名机位，见下表 |
+| `az` `el` `d` | 由 `shot` 给 | **弧度 / 米**，散装覆盖（注意距离是 `d`，不是 `dist`） |
+| `tx` `ty` `tz` | 由 `shot` 给 | 相机目标点 |
+| `t` | `8` | 虚拟时钟推进到几秒后冻结 |
+| `warm` | `round(t*60)` | 帧数；显式给则优先于 `t` |
+| `seed` | `1337` | PRNG 种子 |
+| `dpr` | `1` | 钉死 `devicePixelRatio`（**默认 1，不是跟随设备**） |
+| `w` `h` | 跟随视口 | 钉死 `innerWidth/innerHeight`，必须成对给 |
+
+优先级：**内建默认 → `shot` 命名机位 → 散装数值覆盖**。
+参数写错不会静默忽略：全部进 `window.__shot.errors`，驱动读到就报错退出。
+
+### 命名机位（真值在 `src/00_shot.js` 的 `SHOTS`，不在流水线里）
+
+| 名字 | az | el | dist | target |
+|---|---|---|---|---|
+| `hero` | 0.86 | 0.22 | 27 | −0.2, 1.35, −0.5 |
+| `interior` | 0.86 | 0.16 | 17 | −0.2, 1.10, −0.6 |
+| `storefront` | 0.86 | 0.20 | 13 | −0.2, 1.50, −0.2 |
+| `ground` | 1.20 | 0.05 | 9 | 0.5, 0.15, 0.5 |
+| `corner` | 2.20 | 0.25 | 30 | 0, 1.20, 0 |
+| `moonshadow` | −0.5 | 0.35 | 38 | 2.0, 0.80, 2.0 |
+
+### 三条保证（分开验，各自会独立地坏）
+
+| # | 保证 | 怎么验 | 实测 |
+|---|---|---|---|
+| A | 默认路径没被污染 | `node tools/gate.js` 的 A 组：不带参数时 `Math.random` / `performance.now` 仍是原生，自转仍开着，视口没被钉 | 8/8 PASS |
+| B | 指定机位可复现 | 同一 URL，两个独立进程，PNG 逐字节比 | md5 全等 |
+| C | 构建可复现 | `python3 tools/gate.py`：连构建两次比 md5 | 全等 |
+
+```bash
+# 采一张
+node tools/shot.js --html dist/rainy-night-konbini.html --out build/shots \
+     --shots hero,interior --w 1600 --h 900 --dpr 1 --t 8 --seed 1337
+
+# 采三次，验证可复现
+node tools/shot.js ... --runs 3 && md5 build/shots/run*-hero.png
+
+# 跑闸门
+python3 tools/gate.py && node tools/gate.js
+```
+
+### 图内双语标注（子模板）
+
+[`docs/labels.html`](docs/labels.html) 是同一份场景 + 一层可切换的**图内双语**标注：
+中 / 英切换、日 / 夜切换、锚点按场景对象名解析（几何动了标签跟着走，不写死屏幕坐标）。
+子模板本体在 [`templates/realtime-caption/`](templates/realtime-caption/)，可以直接搬到别的实时渲染作品上。
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/labels-zh.jpg" alt="图内中文标注"><br><sub><b>中文</b> · <code>?lang=zh&theme=night</code></sub></td>
+<td width="50%" valign="top"><img src="docs/media/labels-en.jpg" alt="English captions in figure"><br><sub><b>English</b> · <code>?lang=en&theme=night</code></sub></td>
+</tr>
+</table>
+
+```
+?lang=zh|en   ?theme=night|day   ?labels=0|1
+```
+
+锚点是**解析出来的**，不是量出来的：`{"anchor":{"ref":"ROOF_CAP"}}` 取场景里那个对象的
+世界包围盒中心，逐帧投影。写死屏幕坐标等于给每张图再存一份真值——相机一改全歪，且不报错。
+运行时自带防重叠与防越界（两个锚点靠近时标签框会自动让位，撞边自动翻到另一侧）。
+
+---
+
+## 5 · 能复用什么
 
 | 可复用的东西 | 在哪 | 依赖 | 授权 |
 |---|---|---|---|
@@ -153,6 +245,8 @@ flowchart LR
 | 三渲二硬边色阶（N=4 NearestFilter ramp） | `src/02_textures.js` | 无 | 同上 |
 | 程序化货架排面生成（512×256、4 行、排面 28–46 px） | `src/02_textures.js` | 无 | 同上 |
 | AR(1) 风 + 涟漪扩张模型 | `src/06_effects.js` | 无 | 同上 |
+| **确定性截图层**（具名机位 + 种子化 PRNG + 虚拟时钟 + 钉死 DPR） | `src/00_shot.js` | 无（须排在场景块之前） | 同上 |
+| **图内双语标注子模板** | `templates/realtime-caption/` | 无（只需宿主暴露 `scene`/`camera`） | 同上 |
 | **prompt-selfcheck**（四道闸门，零依赖） | `skills/prompt-selfcheck/` | Python 3 标准库 | 同上 |
 
 ### 直接可用：prompt-selfcheck

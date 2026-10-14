@@ -433,6 +433,31 @@ function updateCamera(dt) {
   camera.lookAt(ctrl.target);
 }
 
+/* ---------- deterministic capture: per-frame camera force-set ---------- */
+/* 为什么是「每帧强制设成目标值」而不是「设一次、然后等阻尼收敛」：
+   updateCamera 的阻尼是 az += (azT - az) * min(1, dt*8)，落点与 dt 有关。
+   dt 来自虚拟时钟，单看是可复现的；但只要 06 的循环与 07 的循环推进的帧数
+   出现一帧差（掉帧、GC 停顿、tab 切走），落点就差一丁点。差一丁点在 27 米外
+   就是几十个像素——旧流水线同脚本两次跑出来 PSNR ≈ 31 dB 就是这么来的。
+   把 az 与 azT 同时设成目标值，阻尼项恒为 0，相机与「跑了多少帧」彻底解耦。
+   不开 capture 时钩子根本不会被调用（帧泵只在 capture 下注册），这里是零成本。 */
+if (window.__SHOT_SET_HOOK__) {
+  window.__SHOT_SET_HOOK__(function (frame, t, frozen) {
+    var c = window.__shot && window.__shot.config;
+    if (!c || !c.capture) return;
+    if (c.az   !== null) { ctrl.az   = c.az;   ctrl.azT   = c.az; }
+    if (c.el   !== null) { ctrl.el   = c.el;   ctrl.elT   = c.el; }
+    if (c.dist !== null) { ctrl.dist = c.dist; ctrl.distT = c.dist; }
+    if (c.tx !== null) ctrl.target.x = c.tx;
+    if (c.ty !== null) ctrl.target.y = c.ty;
+    if (c.tz !== null) ctrl.target.z = c.tz;
+    /* autoRotate 必须关掉：updateCamera 开头会给 azT 加 dt * 0.035，
+       只要它开着，azT 就会在钩子设完之后继续漂。 */
+    ctrl.autoRotate = false;
+    ctrl.touched = true;
+  });
+}
+
 /* ---------- animate ---------- */
 const DOOR = { next: 6 + Math.random() * 12, dwell: 3.0, t0: 0, closed: true };
 function doorOpen(t) {
