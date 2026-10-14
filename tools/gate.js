@@ -1,0 +1,245 @@
+/* tools/gate.js — 发布闸门：把「应该还是好的」变成「跑一遍就知道还是不是好的」
+ *
+ *   node tools/gate.js --html dist/rainy-night-konbini.html [--quick]
+ *
+ * 三件事必须**分开**验证，因为它们会各自独立地坏掉，而坏掉的方式都是静默的：
+ *   A. 默认路径没被污染 —— 不带任何参数时，行为与改动前一模一样
+ *   B. 指定机位可复现 —— 同一个 URL，两个进程，出来的图必须逐字节相同
+ *   C. 构建可复现 —— 同一个源码，构建两次，产物 md5 必须相同（由 gate.py 管）
+ *
+ * 为什么 A 和 B 不能合并成一条「跑一遍看看」：
+ *   只验 B 的话，一个「顺手把默认行为也改了」的提交会一路绿灯——它自己是可复现的。
+ *   只验 A 的话，确定性有没有真的落地根本没测到。
+ */
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { sleep, launch, open, lockViewport, closeTab, captureStable } = require('./cdp.js');
+
+function arg(name, dflt) {
+  const i = process.argv.indexOf('--' + name);
+  return i >= 0 && i + 1 < process.argv.length ? process.argv[i + 1] : dflt;
+}
+const flag = name => process.argv.includes('--' + name);
+
+const HTML = path.resolve(arg('html', 'dist/rainy-night-konbini.html'));
+const W = +arg('w', 1600), H = +arg('h', 900), DPR = +arg('dpr', 1);
+const GPU = arg('gpu', 'swiftshader');
+const T = arg('t', '3');
+const TIMEOUT = +arg('timeout', 180);
+const QUICK = flag('quick');
+const SETTLE = +arg('settle', 1000);
+const KEEP = path.resolve(arg('keep', 'build/gate-diff'));
+
+let fails = 0;
+function ok(name, pass, detail) {
+  console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`);
+  if (!pass) fails++;
+}
+const md5 = b => crypto.createHash('md5').update(b).digest('hex');
+
+async function waitReady(cdp, label) {
+  const started = Date.now();
+  const deadline = started + TIMEOUT * 1000;
+  let last = '';
+  for (;;) {
+    last = await cdp.eval(`(function(){
+      var s = window.__shot;
+      if (!s) return 'LEGACY';
+      if (s.errors && s.errors.length) return 'ERRORS:' + s.errors.join(' | ');
+      if (document.readyState !== 'complete') return 'LOADING(' + document.readyState + ')';
+      return s.ready ? 'READY' : 'WAIT frame=' + s.frame;
+    })()`);
+    if (last === 'READY') return true;
+    if (last.startsWith('ERRORS:')) { ok(label + ' · protocol', false, last); return false; }
+    if (Date.now() > deadline) {
+      /* 超时信息里必须带上「跑到第几帧 / 花了多久 / 每秒几帧」。
+         只写 timeout 的话，看到的人第一反应是「协议坏了」，
+         实际最常见的原因是这台机器没有 GPU：CI 上软件渲染只有 0.8 fps，
+         150 秒才跑到第 122 帧，而 warmFrames 需要 180 帧。 */
+      const el = (Date.now() - started) / 1000;
+      const m = /frame=(\d+)/.exec(last);
+      const fps = m ? (m[1] / el).toFixed(2) : '?';
+      ok(label + ' · ready', false,
+         `timeout after ${el.toFixed(0)}s, last=${last}, ~${fps} fps —— `
+         + `把 --t 调小或 --w/--h 调小（软件渲染的 runner 很慢）`);
+      return false;
+    }
+    await sleep(200);
+  }
+}
+
+/* ---------- A. 默认路径没被污染 ---------- */
+const CLEAN_PROBE = `(function(){
+  var s = window.__shot || {};
+  return JSON.stringify({
+    hasShot:     !!window.__shot,
+    mode:        s.mode || null,
+    errors:      s.errors || [],
+    randomNative: /native code/.test(String(Math.random)),
+    perfNative:   /native code/.test(String(performance.now)),
+    rndPatched:   typeof window.__rnd !== 'undefined',
+    autoRotate:   (typeof ctrl !== 'undefined') ? ctrl.autoRotate : null,
+    sceneReady:   !!(window.__SCENE_DIAGNOSTICS__ && window.__SCENE_DIAGNOSTICS__.isReady()),
+    innerW:       window.innerWidth,
+    innerH:       window.innerHeight,
+    dpr:          window.devicePixelRatio
+  });
+})()`;
+
+async function checkDefault(port) {
+  const { tab, ws, cdp } = await open(port, 'file://' + HTML);
+  try {
+    await lockViewport(cdp, W, H, DPR);
+    for (let i = 0; i < 240; i++) {
+      if (await cdp.eval(`document.readyState === 'complete'`)) break;
+      await sleep(500);
+    }
+    const r = JSON.parse(await cdp.eval(CLEAN_PROBE));
+    ok('A1 场景照常起来', r.sceneReady === true);
+    ok('A2 默认处于 live 模式', r.mode === 'live', 'mode=' + r.mode);
+    ok('A3 Math.random 未被替换', r.randomNative === true);
+    ok('A4 performance.now 未被替换', r.perfNative === true);
+    ok('A5 未挂 __rnd', r.rndPatched === false);
+    ok('A6 自转仍然开着', r.autoRotate === true, 'autoRotate=' + r.autoRotate);
+    ok('A7 视口未被钉死', r.innerW === W && r.innerH === H, `${r.innerW}x${r.innerH} @${r.dpr}`);
+    ok('A8 无协议错误', r.errors.length === 0, r.errors.join('|'));
+  } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
+}
+
+/* ---------- B. 指定机位可复现 ---------- */
+/* 每次都**另起一个 Chrome 进程**：同一个进程开两个标签会共享 GPU 进程与缓存，
+   看起来「复现了」，其实只是同一条时间线被拍了两次。要验就得是独立进程。 */
+async function shootProcess(port, url, label) {
+  const c = launch(port, DPR, GPU);
+  try {
+    const { tab, ws, cdp } = await open(port, url);
+    try {
+      await lockViewport(cdp, W, H, DPR);
+      if (!(await waitReady(cdp, label))) return null;
+      /* 先落盘再比对：CI 上失败时要把两张证据带回来，否则只知道「不一样」，
+         不知道差多少、差在哪。 */
+      const cap = await captureStable(cdp, SETTLE);
+      return { buf: cap.buf, stable: cap.stable, attempts: cap.attempts,
+               eff: await cdp.eval(`JSON.stringify(window.__shot.effective)`) };
+    } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
+  } finally { c.kill(); await sleep(300); }
+}
+
+async function probeOnce(port, expr) {
+  const c = launch(port, DPR, GPU);
+  try {
+    const { tab, ws, cdp } = await open(port, 'file://' + HTML + '?capture=1&v=1');
+    try {
+      for (let i = 0; i < 120; i++) {
+        if (await cdp.eval(`!!window.__shot`)) break;
+        await sleep(250);
+      }
+      return await cdp.eval(`String(${expr})`);
+    } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
+  } finally { c.kill(); await sleep(300); }
+}
+
+async function checkRepro(base) {
+  /* 必须是 JSON.stringify。String(数组) 出来是 "hero,interior,..."，
+     JSON.parse 会报 "Unexpected token 'h'" —— 看起来像协议坏了，其实是自己的锅。 */
+  const names = JSON.parse(await probeOnce(base, 'JSON.stringify(Object.keys(window.__shot.SHOTS))'));
+  console.log('  shots:', names.join(', '));
+  const list = QUICK ? names.slice(0, 2) : names;
+  for (const n of list) {
+    const q = `capture=1&v=1&shot=${n}&t=${T}&seed=1337&dpr=${DPR}&w=${W}&h=${H}`;
+    const url = 'file://' + HTML + '?' + q;
+    const a = await shootProcess(base + 1, url, n + '#1');
+    if (!a) { ok(`B ${n} · 首跑`, false); continue; }
+    const b = await shootProcess(base + 3, url, n + '#2');
+    if (!b) { ok(`B ${n} · 复跑`, false); continue; }
+    const ha = md5(a.buf), hb = md5(b.buf);
+    if (ha !== hb) {
+      fs.mkdirSync(KEEP, { recursive: true });
+      fs.writeFileSync(path.join(KEEP, `${n}-a.png`), a.buf);
+      fs.writeFileSync(path.join(KEEP, `${n}-b.png`), b.buf);
+      console.log(`  证据留存: ${KEEP}/${n}-{a,b}.png`);
+    }
+    ok(`B ${n} · 两进程逐字节相同`, ha === hb, `${ha} vs ${hb}`);
+    ok(`B ${n} · 抓图自证稳定`, a.stable && b.stable,
+       `attempts=${a.attempts}/${b.attempts}`);
+    const e = JSON.parse(a.eff);
+    ok(`B ${n} · 画布尺寸钉死`, e.bufferW === W * DPR && e.bufferH === H * DPR,
+       `${e.bufferW}x${e.bufferH} dpr=${e.dpr}`);
+  }
+}
+
+/* ---------- D. 标注层锚点全部解析成功（只在注入过的产物上验） ---------- */
+async function checkLabels(port) {
+    const { tab, ws, cdp } = await open(port, 'file://' + HTML + '?labels=1');
+  try {
+    await lockViewport(cdp, W, H, DPR);
+    /* 等加载真正结束，而不是等「场景起来了」。
+       标注层的脚本排在场景脚本之后，场景起来 ≠ 标注层已经跑过。 */
+    for (let i = 0; i < 240; i++) {
+      if (await cdp.eval(`document.readyState === 'complete'`)) break;
+      await sleep(500);
+    }
+    await sleep(500);
+    const has = await cdp.eval(`typeof window.__caption`);
+    if (has === 'undefined') { console.log('SKIP  D 标注层（本产物未注入）'); return; }
+    const u = await cdp.eval(`JSON.stringify(window.__caption.unresolved())`);
+    ok('D1 锚点全部解析', u === '[]', 'unresolved=' + u);
+    const vis = await cdp.eval(`document.querySelectorAll('#cap-layer .cap-chip').length`);
+    ok('D2 标签已渲染', vis > 0, 'chips=' + vis);
+    /* 双语残留：切到 en 后逐行扫中文。
+       两个容易划错的地方：
+       ① 别用元素 display 判断「看不看得见」——祖先隐藏、后代可见会骗过你，
+          所以整段用 innerText（它按**渲染结果**算）。
+       ② 扫描范围必须排除控件本身：lang=en 时语言按钮上写的就是「中文」，
+          那是切换入口，不是残留。第一次扫 body 就把它误报成残留了。
+       所以只扫 #cap-layer（标签框与引线），控件在它的兄弟节点上。 */
+    await cdp.eval(`window.__caption.setLang('en')`);
+    await sleep(400);
+    const zh = await cdp.eval(`(function(){
+      var L = document.querySelector('#cap-layer');
+      if (!L) return ['NO-LAYER'];
+      return (L.innerText || '').split('\\n')
+        .filter(function (s) { return /[\\u4e00-\\u9fff]/.test(s); });
+    })()`);
+    ok('D3 切 EN 后标注层无中文残留', zh.length === 0, zh.join(' / ').slice(0, 160));
+
+    /* 反向也要查：切回 zh 后不能残留英文正文（小标题 sub_en 是设计的一部分，
+       所以这里只查「整条标签是不是还在用英文正文字段」——
+       判据是 en 文案是否仍出现在层里，且对应 zh 文案没出现）。 */
+    await cdp.eval(`window.__caption.setLang('zh')`);
+    await sleep(400);
+    const back = await cdp.eval(`(function(){
+      var t = (document.querySelector('#cap-layer')||{}).innerText || '';
+      return JSON.stringify({ hasZh: /[\\u4e00-\\u9fff]/.test(t), len: t.length });
+    })()`);
+    const b = JSON.parse(back);
+    ok('D4 切回 ZH 后标注层重新出现中文', b.hasZh === true && b.len > 0, back);
+  } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
+}
+
+(async () => {
+  console.log('gate on', HTML);
+  if (!fs.existsSync(HTML)) { console.error('FATAL missing', HTML); process.exit(1); }
+
+  const base = 9500;
+  const D_ONLY = flag('d-only');
+
+  if (!D_ONLY) {
+    let chrome = launch(base, DPR, GPU);
+    try { await checkDefault(base); } finally { chrome.kill(); }
+    await sleep(400);
+
+    chrome = launch(base, DPR, GPU);
+    try { await checkRepro(base); } finally { chrome.kill(); }
+    await sleep(400);
+  }
+
+  if (HTML.indexOf('labels') >= 0 || flag('labels')) {
+    chrome = launch(base, DPR, GPU);
+    try { await checkLabels(base); } finally { chrome.kill(); }
+  }
+
+  console.log(fails ? `\nGATE FAILED (${fails})` : '\nGATE OK');
+  process.exit(fails ? 1 : 0);
+})().catch(e => { console.error('FATAL', e && e.stack || e); process.exit(1); });

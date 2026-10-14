@@ -1,0 +1,59 @@
+/* 本仓库雨夜便利店的标注集。
+   锚点一律走 ref / refPrefix —— 由几何自己算出来，改机位、改模型都不会歪。
+   chip 是标签框相对锚点的像素偏移，只影响排版，不影响锚定。 */
+[
+  {
+    "id": "roof",
+    "anchor": { "ref": "ROOF_CAP" },
+    "offset": [0, 0.35, 0],
+    "chip": [70, -60],
+    "sub_zh": "屋顶", "sub_en": "ROOF",
+    "zh": "压顶收边：把雨水甩离墙面",
+    "en": "Roof cap: throws rain clear of the wall"
+  },
+  {
+    "id": "fascia",
+    "anchor": { "ref": "FASCIA_LIP_front" },
+    "offset": [0, -0.25, 0.2],
+    "chip": [-210, -52],
+    "sub_zh": "招牌", "sub_en": "FASCIA",
+    "zh": "下沿滴水线，雨水从这里断成帘",
+    "en": "Drip lip: where the sheet breaks into a curtain"
+  },
+  {
+    "id": "pier",
+    "anchor": { "ref": "PIER_FRONT" },
+    "offset": [0, -0.4, 0.3],
+    "chip": [116, 14],
+    "sub_zh": "立柱", "sub_en": "PIER",
+    "zh": "店面立柱，玻璃幕墙的分缝基准",
+    "en": "Storefront pier: the grid the glazing hangs on"
+  },
+  {
+    "id": "pole",
+    "anchor": { "ref": "UTIL_POLE_21" },
+    "offset": [0, 1.6, 0],
+    "chip": [-190, -30],
+    "sub_zh": "市电", "sub_en": "UTILITY",
+    "zh": "电线杆与配线，随阵风同步摆动",
+    "en": "Utility pole; its wires sway with the same gust field"
+  },
+  {
+    "id": "spill",
+    "anchor": { "refPrefix": "SPILL_POOL_" },
+    "offset": [0, 0.05, 0],
+    "chip": [152, -26],
+    "sub_zh": "地面", "sub_en": "GROUND",
+    "zh": "灯光在湿地面上的溢散，不是贴图",
+    "en": "Light spill on wet ground — computed, not a texture"
+  },
+  {
+    "id": "apron",
+    "anchor": { "ref": "CORNER_APRON" },
+    "offset": [0, -0.2, 0.15],
+    "chip": [-24, 84],
+    "sub_zh": "转角", "sub_en": "CORNER",
+    "zh": "转角披水，收住两片墙的交线",
+    "en": "Corner apron: closes the seam between two walls"
+  }
+]
