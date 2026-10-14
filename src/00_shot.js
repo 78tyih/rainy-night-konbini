@@ -211,8 +211,10 @@ URL 协议（v=1；capture=1 时才生效）：
       }
       /* 就绪握手：探针不该靠 sleep 猜时序。
          冻结后的第 1 帧由本帧的 animate() 渲染出来（dt=0，状态已停），
-         所以等到 frozenFrames >= 2 再报 ready，此刻画面必然已经提交过一次。 */
-      if (V.frozen && V.frozenFrames >= 2) window.__shot.ready = true;
+         所以等到 frozenFrames >= 3 再报 ready：此刻画面必然已经渲染并提交过多次。
+         要 3 不是 2 —— 渲染是一回事，**合成器把这一帧真正提交出去**是另一回事，
+         两者之间隔着一次 compositor commit。只要留得够久，抓到的必然是冻结态。 */
+      if (V.frozen && V.frozenFrames >= 3) window.__shot.ready = true;
     }
     rafOrig(pump);
   }
@@ -249,6 +251,7 @@ URL 协议（v=1；capture=1 时才生效）：
     window.__SHOT_SET_HOOK__(function (frame, t, frozen) {
       window.__shot.frame = frame;
       window.__shot.frozen = frozen;
+      window.__shot.frozenFrames = V.frozenFrames;
     });
   }
 })();

@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { sleep, launch, open, lockViewport, closeTab } = require('./cdp.js');
+const { sleep, launch, open, lockViewport, closeTab, captureStable } = require('./cdp.js');
 
 function arg(name, dflt) {
   const i = process.argv.indexOf('--' + name);
@@ -28,6 +28,8 @@ const GPU = arg('gpu', 'swiftshader');
 const T = arg('t', '3');
 const TIMEOUT = +arg('timeout', 180);
 const QUICK = flag('quick');
+const SETTLE = +arg('settle', 1000);
+const KEEP = path.resolve(arg('keep', 'build/gate-diff'));
 
 let fails = 0;
 function ok(name, pass, detail) {
@@ -115,8 +117,10 @@ async function shootProcess(port, url, label) {
     try {
       await lockViewport(cdp, W, H, DPR);
       if (!(await waitReady(cdp, label))) return null;
-      const s = await cdp.send('Page.captureScreenshot', { format: 'png' });
-      return { buf: Buffer.from(s.data, 'base64'),
+      /* 先落盘再比对：CI 上失败时要把两张证据带回来，否则只知道「不一样」，
+         不知道差多少、差在哪。 */
+      const cap = await captureStable(cdp, SETTLE);
+      return { buf: cap.buf, stable: cap.stable, attempts: cap.attempts,
                eff: await cdp.eval(`JSON.stringify(window.__shot.effective)`) };
     } finally { try { ws.close(); } catch (e) {} await closeTab(port, tab); }
   } finally { c.kill(); await sleep(300); }
@@ -150,7 +154,15 @@ async function checkRepro(base) {
     const b = await shootProcess(base + 3, url, n + '#2');
     if (!b) { ok(`B ${n} · 复跑`, false); continue; }
     const ha = md5(a.buf), hb = md5(b.buf);
+    if (ha !== hb) {
+      fs.mkdirSync(KEEP, { recursive: true });
+      fs.writeFileSync(path.join(KEEP, `${n}-a.png`), a.buf);
+      fs.writeFileSync(path.join(KEEP, `${n}-b.png`), b.buf);
+      console.log(`  证据留存: ${KEEP}/${n}-{a,b}.png`);
+    }
     ok(`B ${n} · 两进程逐字节相同`, ha === hb, `${ha} vs ${hb}`);
+    ok(`B ${n} · 抓图自证稳定`, a.stable && b.stable,
+       `attempts=${a.attempts}/${b.attempts}`);
     const e = JSON.parse(a.eff);
     ok(`B ${n} · 画布尺寸钉死`, e.bufferW === W * DPR && e.bufferH === H * DPR,
        `${e.bufferW}x${e.bufferH} dpr=${e.dpr}`);

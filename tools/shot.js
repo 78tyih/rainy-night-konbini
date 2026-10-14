@@ -14,7 +14,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { sleep, launch, open, lockViewport, closeTab } = require('./cdp.js');
+const { sleep, launch, open, lockViewport, closeTab, captureStable } = require('./cdp.js');
 
 function arg(name, dflt) {
   const i = process.argv.indexOf('--' + name);
@@ -106,8 +106,9 @@ async function main() {
             await sleep(900);
           }
 
-          const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
-          const buf = Buffer.from(shot.data, 'base64');
+          const cap = await captureStable(cdp, +arg('settle', 1000));
+          const buf = cap.buf;
+          if (!cap.stable) console.log(`[shot] 警告: ${name} 连抓 ${cap.attempts} 次仍未稳定`);
           const file = path.join(OUT, `run${run + 1}-${name}.png`);
           fs.writeFileSync(file, buf);
           const eff = await cdp.eval(`JSON.stringify(window.__shot ? window.__shot.effective : null)`);

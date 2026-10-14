@@ -34,4 +34,14 @@ jobs:
       # 所以 CI 用更小的画布与更少的预热帧——确定性验的是「同一 URL 两次
       # 逐字节相同」，与画布大小无关，缩小不损失判别力，只省时间。
       - name: render gate (quick)
-        run: node tools/gate.js --quick --w 800 --h 450 --t 1 --timeout 600
+        run: node tools/gate.js --quick --w 800 --h 450 --t 1 --timeout 600 --keep build/gate-diff
+
+      # 失败时把两张不一致的截图带回来。只报「不一样」等于没报：
+      # 不知道差多少、差在哪、是不是只差几帧的雨。
+      - name: upload diff evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-diff
+          path: build/gate-diff/
+          if-no-files-found: ignore

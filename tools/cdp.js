@@ -108,4 +108,27 @@ async function closeTab(port, tab) {
   try { await fetch(`http://127.0.0.1:${port}/json/close/${tab.id}`, { method: 'PUT' }); } catch (e) {}
 }
 
-module.exports = { CDP, sleep, launch, open, lockViewport, closeTab, newTab, CHROME };
+/* 稳定抓图：先让合成器追上，再连抓两次要求逐字节相同。
+ *
+ * 为什么需要：冻结之后画面内容已经不再变化，但「渲染完成」与「合成器把这一帧
+ * 提交出去」是两件事，中间隔着一次 compositor commit。无 GPU 的机器上这一拍
+ * 可能拖后，于是抓到的可能是冻结前的那一帧。
+ * settle 之所以不是「靠 sleep 猜时序」：状态已经由 frozenFrames 确认冻住了，
+ * 这段时间里画面**按定义不会变**，它只用来让合成器追上来。
+ * 连抓两次相同才算稳定 —— 这是自证，不是假设。
+ */
+async function captureStable(cdp, settle = 1000, gap = 400, tries = 4) {
+  const sleepFn = ms => new Promise(r => setTimeout(r, ms));
+  await sleepFn(settle);
+  let prev = null;
+  for (let i = 0; i < tries; i++) {
+    const s = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    const buf = Buffer.from(s.data, 'base64');
+    if (prev && prev.equals(buf)) return { buf, attempts: i + 1, stable: true };
+    prev = buf;
+    if (i < tries - 1) await sleepFn(gap);
+  }
+  return { buf: prev, attempts: tries, stable: false };
+}
+
+module.exports = { CDP, sleep, launch, open, lockViewport, closeTab, newTab, captureStable, CHROME };

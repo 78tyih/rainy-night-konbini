@@ -559,8 +559,16 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+let _lastW = 0, _lastH = 0;
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
+  /* 尺寸没变就直接返回。这不只是省事：
+     renderer.setSize() 会重新赋值 canvas.width/height，**顺带清空绘制缓冲**。
+     在两次渲染之间清一次缓冲，合成器就可能捕捉到「画面被清掉、还没重绘」的那一帧。
+     实测症状是在无 GPU 的 CI 上偶发——同一份产物、同一个机位，两个进程的
+     截图偶尔不一致，而本机 100% 一致。空闲时重设尺寸本来就是纯浪费。 */
+  if (w === _lastW && h === _lastH) return;
+  _lastW = w; _lastH = h;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
